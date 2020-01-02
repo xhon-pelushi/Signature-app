@@ -1,0 +1,100 @@
+// Prisma schema for Signature-app
+// Default to SQLite for easy self-hosting; allow DATABASE_URL override for Postgres/MySQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Default to SQLite for easy self-hosting; override DATABASE_URL for Postgres/MySQL if you change provider manually.
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  // relations
+  signatureRequestsCreated SignatureRequest[] @relation("Requester")
+  uploadedDocuments        Document[]
+}
+
+model Settings {
+  id            Int      @id @default(1)
+  initialized   Boolean  @default(false)
+  orgName       String?
+  orgAddress    String?
+  smtpHost      String?
+  smtpPort      Int?
+  smtpUser      String?
+  smtpPass      String?
+  fromEmail     String?
+  storageDriver String?  // local | s3
+  s3Bucket      String?
+  s3Region      String?
+  s3AccessKey   String?
+  s3SecretKey   String?
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  name       String
+  filePath   String   // local path or S3 key
+  uploadedBy String
+  uploader   User     @relation(fields: [uploadedBy], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  // derived
+  versions   DocumentVersion[]
+  signatureRequests SignatureRequest[]
+}
+
+model DocumentVersion {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+  version    Int
+  filePath   String   // path/key for this version
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, version])
+}
+
+model SignatureRequest {
+  id           String   @id @default(cuid())
+  title        String
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id])
+  requesterId  String
+  requester    User     @relation("Requester", fields: [requesterId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  status       String   @default("DRAFT") // DRAFT|SENT|PARTIALLY_SIGNED|COMPLETED|CANCELED
+  signerLinks  SignerLink[]
+  token        String   @unique // admin preview token
+}
+
+model SignerLink {
+  id            String   @id @default(cuid())
+  requestId     String
+  request       SignatureRequest @relation(fields: [requestId], references: [id])
+  signerEmail   String
+  signerName    String?
+  signerOrder   Int      @default(1)
+  signedAt      DateTime?
+  token         String   @unique
+}
+
+model EmailQueue {
+  id         String   @id @default(cuid())
+  to         String
+  subject    String
+  html       String
+  createdAt  DateTime @default(now())
+  sentAt     DateTime?
+  error      String?
+}
