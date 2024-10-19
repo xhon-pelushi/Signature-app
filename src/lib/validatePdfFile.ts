@@ -33,7 +33,9 @@ export async function validatePdfFile(
     errors.push(`Unsupported MIME type: ${t || "unknown"}`);
   }
   if (file.size > maxSizeBytes) {
-    errors.push(`File exceeds maximum size of ${(maxSizeBytes / (1024 * 1024)).toFixed(1)} MB`);
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    const maxSizeMB = (maxSizeBytes / (1024 * 1024)).toFixed(1);
+    errors.push(`File size (${fileSizeMB} MB) exceeds maximum allowed size of ${maxSizeMB} MB`);
   }
   if (sniffHeader) {
     try {
