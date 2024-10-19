@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
+    // Enhanced TypeScript configuration for better development experience
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
