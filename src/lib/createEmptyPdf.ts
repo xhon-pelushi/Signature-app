@@ -654,6 +654,18 @@ export async function createEmptyPdf(
   }
 }
 
+/**
+ * Generate PDF as raw bytes (Uint8Array) instead of Blob.
+ * Useful for server-side processing, streaming, or when you need direct access to the byte data.
+ * 
+ * @param title - The document title (drawn on each page and set as PDF metadata)
+ * @param options - PDF generation options (same as createEmptyPdf)
+ * @returns Uint8Array containing the PDF bytes
+ * 
+ * Example:
+ *   const bytes = await createEmptyPdfBytes("Demo", { pages: 2, size: "A4" });
+ *   // Use bytes for server response, file system write, etc.
+ */
 export async function createEmptyPdfBytes(
   title = "Sample Document",
   options: CreateEmptyPdfOptions = {},
