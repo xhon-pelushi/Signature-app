@@ -100,6 +100,10 @@ src/
 - [ ] File storage (AWS S3/CloudFlare R2)
 - [ ] Advanced PDF editing tools
 
+## 📚 Documentation
+
+- See docs/roadmap.md for upcoming features and milestones.
+
 ## 🎨 Design System
 
 The application follows a consistent design system:

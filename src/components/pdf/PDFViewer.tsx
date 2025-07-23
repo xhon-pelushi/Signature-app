@@ -10,6 +10,7 @@ import {
   ChevronRight,
   AlertCircle,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/Spinner";
 
 // Configure pdf.js worker to match the exact API version react-pdf is using
 // This avoids "API version X does not match Worker version Y" errors.
@@ -146,7 +147,11 @@ export default function PDFViewer({
               console.error("PDF load error:", e);
               setError(msg);
             }}
-            loading={<div className="text-gray-600">Loading PDF…</div>}
+            loading={
+              <div className="flex items-center gap-2 text-gray-600">
+                <Spinner /> <span>Loading PDF…</span>
+              </div>
+            }
             error={
               <div className="flex items-center gap-2 text-red-600">
                 <AlertCircle className="h-5 w-5" /> Error loading PDF
