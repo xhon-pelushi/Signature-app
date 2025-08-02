@@ -78,6 +78,37 @@ export default function PDFViewer({
   // Memoize options so <Document /> doesn't think options changed every render
   const docOptions = useMemo(() => ({ cMapPacked: true as const }), []);
 
+  // Keyboard shortcuts: ←/→ for prev/next page, Ctrl/Cmd + +/- for zoom, Ctrl/Cmd + 0 to reset
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs or editable elements
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+
+      const ctrlOrMeta = e.ctrlKey || e.metaKey;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setPageNumber((p) => (p > 1 ? p - 1 : p));
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setPageNumber((p) => (p < numPages ? p + 1 : p));
+      } else if (ctrlOrMeta && (e.key === "+" || e.key === "=")) {
+        e.preventDefault();
+        setScale((s) => Math.min(3, parseFloat((s + 0.1).toFixed(2))));
+      } else if (ctrlOrMeta && (e.key === "-" || e.key === "_")) {
+        e.preventDefault();
+        setScale((s) => Math.max(0.25, parseFloat((s - 0.1).toFixed(2))));
+      } else if (ctrlOrMeta && (e.key === "0")) {
+        e.preventDefault();
+        setScale(1);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [numPages]);
+
   return (
     <div className={`flex flex-col ${className ?? ""}`}>
       {/* Toolbar */}
