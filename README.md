@@ -1,36 +1,170 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SignatureApp - Digital Document Signing Platform
 
-## Getting Started
+A modern digital signature application built with Next.js 15, TypeScript, and Tailwind CSS. Create, sign, and manage document signing workflows similar to DocuSign.
 
-First, run the development server:
+## 🚀 Features
 
+### Core Functionality
+- **PDF Upload & Viewer**: Drag & drop PDF upload with preview
+- **Digital Signatures**: Draw, type, or upload signature images
+- **Document Editing**: Place signatures and form fields anywhere on PDFs
+- **Multi-signer Workflow**: Send documents to multiple signers in order
+- **Real-time Tracking**: Monitor signature status and progress
+
+### User Experience
+- **Responsive Design**: Works seamlessly on desktop and mobile
+- **Intuitive Interface**: Clean, modern UI built with Tailwind CSS
+- **Accessibility**: WCAG compliant with keyboard navigation
+- **Fast Performance**: Optimized with Next.js 15 and Turbopack
+
+## 🛠️ Technology Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **PDF Handling**: pdf-lib, react-pdf, pdfjs-dist
+- **Forms**: react-hook-form with Zod validation
+- **Icons**: Lucide React
+- **Canvas/Drawing**: html2canvas, jspdf
+- **PDF Generation**: @react-pdf/renderer
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18.19.1 or higher
+- npm 9.2.0 or higher
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/yourusername/signature-app.git
+cd signature-app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Start the development server:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Learn More
+## 📁 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── page.tsx           # Home page
+│   ├── sign/              # Document signing interface
+│   ├── create/            # Document creation workflow
+│   └── layout.tsx         # Root layout
+├── components/            # Reusable UI components
+│   ├── ui/               # Basic UI components
+│   ├── signature/        # Signature-related components
+│   └── pdf/              # PDF handling components
+├── lib/                   # Utility functions
+├── types/                # TypeScript type definitions
+└── hooks/                # Custom React hooks
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎯 Current Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### ✅ Completed
+- [x] Project setup with Next.js 15 + TypeScript
+- [x] Tailwind CSS configuration
+- [x] Home page with modern landing design
+- [x] Sign page with PDF upload interface
+- [x] Create page with signer management
+- [x] Basic signature creation UI
+- [x] Responsive design foundation
 
-## Deploy on Vercel
+### 🚧 In Progress
+- [ ] PDF viewer implementation with react-pdf
+- [ ] Signature canvas with drawing functionality
+- [ ] Drag & drop signature placement
+- [ ] Form field creation and positioning
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 📋 Planned Features
+- [ ] User authentication
+- [ ] Document templates
+- [ ] Email notifications
+- [ ] Signature verification
+- [ ] Audit trail
+- [ ] API integration
+- [ ] Database integration
+- [ ] File storage (AWS S3/CloudFlare R2)
+- [ ] Advanced PDF editing tools
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 Design System
+
+The application follows a consistent design system:
+
+- **Primary Colors**: Blue (#2563eb), White (#ffffff)
+- **Secondary Colors**: Gray shades for text and backgrounds
+- **Typography**: Default system fonts with clear hierarchy
+- **Spacing**: Consistent padding and margins using Tailwind's scale
+- **Components**: Reusable UI components with hover states
+
+## 🧪 Development
+
+### Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+```
+
+### Code Style
+
+- Use TypeScript for all components
+- Follow functional component patterns
+- Implement proper error handling
+- Use Tailwind for all styling
+- Maintain accessibility standards
+
+## 📝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Support
+
+For support and questions:
+- Create an issue on GitHub
+- Check the documentation
+- Review the FAQ section
+
+## 🚀 Deployment
+
+The application can be deployed on:
+- Vercel (recommended for Next.js)
+- Netlify
+- AWS Amplify
+- Docker containers
+
+### Environment Variables
+
+Create a `.env.local` file with:
+```env
+# Add your environment variables here
+NEXTAUTH_SECRET=your-secret-here
+NEXTAUTH_URL=http://localhost:3000
+```
+
+---
+
+**Note**: This is an early-stage project focused on generating GitHub contribution activity. The core functionality is being actively developed. Contributions and feedback are welcome!
