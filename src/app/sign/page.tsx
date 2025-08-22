@@ -1,13 +1,19 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Upload, FileText, Download, PenTool, Type, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
+import { createEmptyPdf } from "@/lib/createEmptyPdf";
+import dynamic from "next/dynamic";
+
+// Dynamically import PDFViewer to keep SSR clean
+const PDFViewer = dynamic(() => import("@/components/pdf/PDFViewer"), { ssr: false });
 
 export default function SignPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [signatureMode, setSignatureMode] = useState<'draw' | 'type' | 'upload'>('draw');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -27,6 +33,24 @@ export default function SignPage() {
       setUploadedFile(file);
     }
   };
+
+  const handleUseSample = async () => {
+    const blob = await createEmptyPdf();
+    const sampleFile = new File([blob], "sample.pdf", { type: "application/pdf" });
+    setUploadedFile(sampleFile);
+  };
+
+  // Create an object URL for react-pdf
+  useEffect(() => {
+    if (!uploadedFile) {
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(uploadedFile);
+    setPdfUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [uploadedFile]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -71,6 +95,13 @@ export default function SignPage() {
                 <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
                   Choose File
                 </button>
+                <button
+                  type="button"
+                  onClick={handleUseSample}
+                  className="ml-3 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50"
+                >
+                  Use sample PDF
+                </button>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -101,15 +132,18 @@ export default function SignPage() {
                   </div>
                 </div>
                 
-                {/* PDF Viewer Placeholder */}
-                <div className="p-6 h-[600px] bg-gray-100 flex items-center justify-center">
-                  <div className="text-center">
-                    <FileText className="h-24 w-24 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 text-lg">PDF Viewer</p>
-                    <p className="text-gray-500 text-sm">
-                      PDF rendering will be implemented with react-pdf
-                    </p>
-                  </div>
+                {/* PDF Viewer */}
+                <div className="p-4">
+                  {uploadedFile ? (
+                    <PDFViewer file={uploadedFile} />
+                  ) : (
+                    <div className="h-[600px] bg-gray-100 flex items-center justify-center rounded-lg">
+                      <div className="text-center">
+                        <FileText className="h-24 w-24 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600 text-lg">Preparing viewer…</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
