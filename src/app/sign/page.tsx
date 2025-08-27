@@ -5,6 +5,10 @@ import { Upload, FileText, Download, PenTool, Type, Image as ImageIcon } from "l
 import Link from "next/link";
 import { createEmptyPdf } from "@/lib/createEmptyPdf";
 import dynamic from "next/dynamic";
+import ThumbnailsRail from "@/components/pdf/ThumbnailsRail";
+import { useFields } from "@/hooks/useFields";
+import type { FieldType, Field } from "@/types/fields";
+import { DraggableField } from "@/components/signature/DraggableField";
 
 // Dynamically import PDFViewer to keep SSR clean
 const PDFViewer = dynamic(() => import("@/components/pdf/PDFViewer"), { ssr: false });
@@ -14,6 +18,8 @@ export default function SignPage() {
   const [signatureMode, setSignatureMode] = useState<'draw' | 'type' | 'upload'>('draw');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const { fields, addField, updateField } = useFields();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -75,7 +81,7 @@ export default function SignPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Document Upload/Viewer */}
           <div className="lg:col-span-2">
             {!uploadedFile ? (
@@ -132,18 +138,49 @@ export default function SignPage() {
                   </div>
                 </div>
                 
-                {/* PDF Viewer */}
+                {/* PDF Viewer with thumbnails and overlay */}
                 <div className="p-4">
-                  {uploadedFile ? (
-                    <PDFViewer file={uploadedFile} />
-                  ) : (
-                    <div className="h-[600px] bg-gray-100 flex items-center justify-center rounded-lg">
-                      <div className="text-center">
-                        <FileText className="h-24 w-24 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-600 text-lg">Preparing viewer…</p>
-                      </div>
+                  <div className="flex gap-4">
+                    {uploadedFile && (
+                      <ThumbnailsRail
+                        file={uploadedFile}
+                        currentPage={currentPage}
+                        onSelect={(p) => setCurrentPage(p)}
+                      />
+                    )}
+                    <div className="flex-1">
+                      {uploadedFile ? (
+                        <PDFViewer
+                          file={uploadedFile}
+                          page={currentPage}
+                          onPageChange={setCurrentPage}
+                          overlay={({ width, height, page }) => {
+                            const pageFields = fields[page] || [];
+                            return (
+                              <>
+                                {pageFields.map((f) => (
+                                  <DraggableField
+                                    key={f.id}
+                                    field={f}
+                                    pageWidth={width}
+                                    pageHeight={height}
+                                    onChange={(nf) => updateField(page, f.id, nf)}
+                                  />
+                                ))}
+                              </>
+                            );
+                          }}
+                        />
+                      ) : (
+                        <div className="h-[600px] bg-gray-100 flex items-center justify-center rounded-lg">
+                          <div className="text-center">
+                            <FileText className="h-24 w-24 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-600 text-lg">Preparing viewer…</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             )}
@@ -227,19 +264,35 @@ export default function SignPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Fields</h3>
               <div className="space-y-2">
-                <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center">
+                <button
+                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center"
+                  onClick={() => addField(currentPage, "signature")}
+                  disabled={!uploadedFile}
+                >
                   <PenTool className="h-4 w-4 text-blue-600 mr-3" />
                   Signature Field
                 </button>
-                <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center">
+                <button
+                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center"
+                  onClick={() => addField(currentPage, "text")}
+                  disabled={!uploadedFile}
+                >
                   <Type className="h-4 w-4 text-green-600 mr-3" />
                   Text Field
                 </button>
-                <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center">
+                <button
+                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center"
+                  onClick={() => addField(currentPage, "checkbox")}
+                  disabled={!uploadedFile}
+                >
                   <div className="h-4 w-4 border border-purple-600 rounded mr-3"></div>
                   Checkbox
                 </button>
-                <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center">
+                <button
+                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center"
+                  onClick={() => addField(currentPage, "date")}
+                  disabled={!uploadedFile}
+                >
                   <div className="h-4 w-4 bg-orange-600 rounded mr-3"></div>
                   Date Field
                 </button>

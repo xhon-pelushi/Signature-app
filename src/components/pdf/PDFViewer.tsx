@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import {
   ZoomIn,
@@ -24,6 +24,9 @@ type PDFViewerProps = {
   initialScale?: number; // 1.0 = 100%
   fitToWidth?: boolean;
   className?: string;
+  page?: number; // controlled current page
+  onPageChange?: (p: number) => void;
+  overlay?: React.ReactNode | ((info: { width: number; height: number; page: number; scale: number }) => React.ReactNode); // overlay for current page
 };
 
 export default function PDFViewer({
@@ -31,16 +34,21 @@ export default function PDFViewer({
   initialScale = 1.0,
   fitToWidth = true,
   className,
+  page,
+  onPageChange,
+  overlay,
 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [pageNumber, setPageNumber] = useState<number>(page ?? 1);
   const [scale, setScale] = useState<number>(initialScale);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pageSize, setPageSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const pageWrapperRef = useRef<HTMLDivElement | null>(null);
 
   const onDocumentLoadSuccess = ({ numPages: nextNumPages }: { numPages: number }) => {
     setNumPages(nextNumPages);
-    setPageNumber(1);
+    setPageNumber(page ?? 1);
   };
 
   // Fit-to-width adjustment using a rough heuristic based on container width
@@ -109,6 +117,25 @@ export default function PDFViewer({
     return () => window.removeEventListener("keydown", handler);
   }, [numPages]);
 
+  // Sync with controlled page prop
+  useEffect(() => {
+    if (typeof page === "number" && page > 0 && page !== pageNumber) {
+      setPageNumber(page);
+    }
+  }, [page]);
+
+  // Observe rendered page size for overlay
+  useEffect(() => {
+    const el = pageWrapperRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setPageSize({ width: el.clientWidth, height: el.clientHeight });
+    });
+    setPageSize({ width: el.clientWidth, height: el.clientHeight });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [pageNumber, scale, pageWidth]);
+
   return (
     <div className={`flex flex-col ${className ?? ""}`}>
       {/* Toolbar */}
@@ -116,19 +143,25 @@ export default function PDFViewer({
         <div className="flex items-center gap-2">
           <button
             className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
-            onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
+            onClick={() => {
+              const next = Math.max(1, pageNumber - 1);
+              setPageNumber(next);
+              onPageChange?.(next);
+            }}
             disabled={!canPrev}
             aria-label="Previous page"
             title="Previous page"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm text-gray-700">
-            Page {pageNumber} / {numPages || "-"}
-          </span>
+          <span className="text-sm text-gray-700">Page {pageNumber} / {numPages || "-"}</span>
           <button
             className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
-            onClick={() => setPageNumber((p) => Math.min(numPages, p + 1))}
+            onClick={() => {
+              const next = Math.min(numPages, pageNumber + 1);
+              setPageNumber(next);
+              onPageChange?.(next);
+            }}
             disabled={!canNext}
             aria-label="Next page"
             title="Next page"
@@ -168,7 +201,7 @@ export default function PDFViewer({
 
       {/* Viewer */}
       <div id="pdf-container" className="relative bg-gray-100 h-[600px] overflow-auto rounded-b-lg">
-        <div className="flex justify-center p-4">
+        <div className="flex justify-center p-4 relative">
           <Document
             file={fileProp}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -190,13 +223,25 @@ export default function PDFViewer({
             }
             options={docOptions}
           >
-            <Page
-              pageNumber={pageNumber}
-              scale={scale}
-              width={pageWidth}
-              renderTextLayer={false}
-              renderAnnotationLayer
-            />
+            <div className="relative">
+              <div ref={pageWrapperRef} className="relative">
+                <Page
+                  pageNumber={pageNumber}
+                  scale={scale}
+                  width={pageWidth}
+                  renderTextLayer={false}
+                  renderAnnotationLayer
+                />
+                {/* Overlay area positioned on top of the page */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="relative w-full h-full pointer-events-auto">
+                    {typeof overlay === "function"
+                      ? overlay({ width: pageSize.width, height: pageSize.height, page: pageNumber, scale })
+                      : overlay}
+                  </div>
+                </div>
+              </div>
+            </div>
           </Document>
         </div>
         {error && (
