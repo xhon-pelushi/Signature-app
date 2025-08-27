@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Upload, FileText, Download, PenTool, Type, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { createEmptyPdf } from "@/lib/createEmptyPdf";
 import dynamic from "next/dynamic";
-import ThumbnailsRail from "@/components/pdf/ThumbnailsRail";
+const ThumbnailsRail = dynamic(() => import("@/components/pdf/ThumbnailsRail"), { ssr: false });
 import { useFields } from "@/hooks/useFields";
-import type { FieldType, Field } from "@/types/fields";
+// types are used within hooks/components; explicit imports not needed here
 import { DraggableField } from "@/components/signature/DraggableField";
 
 // Dynamically import PDFViewer to keep SSR clean
@@ -47,6 +47,7 @@ export default function SignPage() {
   };
 
   // Create an object URL for react-pdf
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!uploadedFile) {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);

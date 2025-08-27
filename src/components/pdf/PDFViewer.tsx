@@ -205,9 +205,10 @@ export default function PDFViewer({
           <Document
             file={fileProp}
             onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={(e) => {
-              const msg = (e as any)?.message ?? "Failed to load PDF";
-              // eslint-disable-next-line no-console
+            onLoadError={(e: unknown) => {
+              const msg = e && typeof e === "object" && "message" in (e as Record<string, unknown>)
+                ? String((e as { message?: unknown }).message)
+                : "Failed to load PDF";
               console.error("PDF load error:", e);
               setError(msg);
             }}
