@@ -9,6 +9,7 @@ const ThumbnailsRail = dynamic(() => import("@/components/pdf/ThumbnailsRail"), 
 import { useFields } from "@/hooks/useFields";
 // types are used within hooks/components; explicit imports not needed here
 import { DraggableField } from "@/components/signature/DraggableField";
+import { exportWithFields } from "@/lib/exportWithFields";
 
 // Dynamically import PDFViewer to keep SSR clean
 const PDFViewer = dynamic(() => import("@/components/pdf/PDFViewer"), { ssr: false });
@@ -19,7 +20,8 @@ export default function SignPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const { fields, addField, updateField } = useFields();
+  const { fields, addField, updateField, removeField } = useFields();
+  const [downloading, setDownloading] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -166,6 +168,7 @@ export default function SignPage() {
                                     pageWidth={width}
                                     pageHeight={height}
                                     onChange={(nf) => updateField(page, f.id, nf)}
+                                    onDelete={(id) => removeField(page, id)}
                                   />
                                 ))}
                               </>
@@ -307,8 +310,28 @@ export default function SignPage() {
                 <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
                   Preview Document
                 </button>
-                <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-                  Send for Signature
+                <button
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  disabled={!uploadedFile || downloading}
+                  onClick={async () => {
+                    if (!uploadedFile) return;
+                    try {
+                      setDownloading(true);
+                      const blob = await exportWithFields(uploadedFile, fields);
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `${uploadedFile.name.replace(/\.pdf$/i, "")}__flattened.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      a.remove();
+                      URL.revokeObjectURL(url);
+                    } finally {
+                      setDownloading(false);
+                    }
+                  }}
+                >
+                  {downloading ? "Generating…" : "Download Flattened PDF"}
                 </button>
                 <button className="w-full border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50">
                   Save as Template

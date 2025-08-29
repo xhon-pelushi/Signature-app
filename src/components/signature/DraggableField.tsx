@@ -8,9 +8,10 @@ type Props = {
   pageWidth: number;
   pageHeight: number;
   onChange: (f: Field) => void;
+  onDelete?: (id: string) => void;
 };
 
-export function DraggableField({ field, pageWidth, pageHeight, onChange }: Props) {
+export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelete }: Props) {
   const elRef = useRef<HTMLDivElement | null>(null);
   const [dragging, setDragging] = useState(false);
   const [start, setStart] = useState<{ x: number; y: number } | null>(null);
@@ -52,7 +53,20 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange }: Props
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
     >
-      <div className="text-[10px] text-blue-700 px-1 py-0.5">{field.type}</div>
+      <div className="flex items-center justify-between text-[10px] text-blue-700 px-1 py-0.5 bg-blue-50/70">
+        <span>{field.type}</span>
+        {onDelete && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDelete(field.id); }}
+            className="ml-2 text-red-600 hover:text-red-700"
+            aria-label="Remove field"
+            title="Remove field"
+          >
+            ×
+          </button>
+        )}
+      </div>
     </div>
   );
 }
