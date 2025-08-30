@@ -23,13 +23,14 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
   const [resizing, setResizing] = useState<Corner | null>(null);
 
   const px = (v: number) => Math.round(v * 1000) / 1000;
+  const snap = (v: number, step = 0.005) => Math.round(v / step) * step;
   const clamp = (nf: Field) => {
     const minW = 0.04;
     const minH = 0.02;
-    let x = Math.max(0, Math.min(1 - nf.w, nf.x));
-    let y = Math.max(0, Math.min(1 - nf.h, nf.y));
-    let w = Math.max(minW, Math.min(1 - x, nf.w));
-    let h = Math.max(minH, Math.min(1 - y, nf.h));
+    let x = snap(Math.max(0, Math.min(1 - nf.w, nf.x)));
+    let y = snap(Math.max(0, Math.min(1 - nf.h, nf.y)));
+    let w = snap(Math.max(minW, Math.min(1 - x, nf.w)));
+    let h = snap(Math.max(minH, Math.min(1 - y, nf.h)));
     return { ...nf, x: px(x), y: px(y), w: px(w), h: px(h) } as Field;
   };
 
@@ -118,6 +119,11 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
           </button>
         )}
       </div>
+      {selected && (
+        <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded shadow">
+          {Math.round(field.w * pageWidth)}×{Math.round(field.h * pageHeight)}
+        </div>
+      )}
       {selected && (
         <>
           {/* Resize handles */}

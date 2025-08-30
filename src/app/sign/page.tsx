@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createEmptyPdf } from "@/lib/createEmptyPdf";
 import dynamic from "next/dynamic";
 const ThumbnailsRail = dynamic(() => import("@/components/pdf/ThumbnailsRail"), { ssr: false });
-import { useFields } from "@/hooks/useFields";
+import { useFields, FieldsByPage } from "@/hooks/useFields";
 // types are used within hooks/components; explicit imports not needed here
 import { DraggableField } from "@/components/signature/DraggableField";
 import { exportWithFields } from "@/lib/exportWithFields";
@@ -22,7 +22,7 @@ export default function SignPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const { fields, addField, updateField, removeField } = useFields();
+  const { fields, addField, updateField, removeField, setAll } = useFields();
   const [downloading, setDownloading] = useState(false);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const { signatureDataUrl, setFromDataUrl, clear: clearSignature } = useSignature();
@@ -92,6 +92,29 @@ export default function SignPage() {
     setPdfUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [uploadedFile]);
+
+  // Persistence: load/save fields & signature per document name
+  useEffect(() => {
+    if (!uploadedFile) return;
+    const key = `sigapp:${uploadedFile.name}`;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { fields: FieldsByPage; signatureDataUrl?: string };
+        if (parsed?.fields) setAll(parsed.fields);
+        if (parsed?.signatureDataUrl) setFromDataUrl(parsed.signatureDataUrl);
+      }
+    } catch {}
+  }, [uploadedFile]);
+
+  useEffect(() => {
+    if (!uploadedFile) return;
+    const key = `sigapp:${uploadedFile.name}`;
+    try {
+      const data = JSON.stringify({ fields, signatureDataUrl });
+      localStorage.setItem(key, data);
+    } catch {}
+  }, [uploadedFile, fields, signatureDataUrl]);
 
   return (
     <div className="min-h-screen bg-gray-50">

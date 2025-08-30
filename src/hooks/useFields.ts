@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import type { Field, FieldType } from "@/types/fields";
 
-type FieldsByPage = Record<number, Field[]>;
+export type FieldsByPage = Record<number, Field[]>;
 
 export function useFields() {
   const [fields, setFields] = useState<FieldsByPage>({});
@@ -47,8 +47,9 @@ export function useFields() {
   }, []);
 
   const clear = useCallback(() => setFields({}), []);
+  const setAll = useCallback((all: FieldsByPage) => setFields(all), []);
 
   const allFields = useMemo(() => fields, [fields]);
 
-  return { fields: allFields, addField, updateField, removeField, clear };
+  return { fields: allFields, addField, updateField, removeField, clear, setAll };
 }
