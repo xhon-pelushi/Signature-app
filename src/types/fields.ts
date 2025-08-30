@@ -9,4 +9,5 @@ export interface Field {
   h: number; // height, 0..1
   type: FieldType;
   label?: string;
+  signerId?: string;
 }

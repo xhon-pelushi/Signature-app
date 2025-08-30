@@ -11,11 +11,12 @@ type Props = {
   onDelete?: (id: string) => void;
   selected?: boolean;
   onSelect?: (id: string) => void;
+  color?: string; // border color based on signer
 };
 
 type Corner = "nw" | "ne" | "sw" | "se";
 
-export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelete, selected, onSelect }: Props) {
+export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelete, selected, onSelect, color }: Props) {
   const elRef = useRef<HTMLDivElement | null>(null);
   const [dragging, setDragging] = useState(false);
   const [start, setStart] = useState<{ x: number; y: number } | null>(null);
@@ -96,10 +97,14 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
     height: field.h * pageHeight,
   } as const;
 
+  const borderColor = color || (selected ? "border-blue-600" : dragging ? "border-blue-500" : "border-blue-400");
+  const nearCenterX = Math.abs(field.x + field.w / 2 - 0.5) < 0.01;
+  const nearCenterY = Math.abs(field.y + field.h / 2 - 0.5) < 0.01;
+
   return (
     <div
       ref={elRef}
-      className={`absolute border-2 ${selected ? "border-blue-600" : dragging ? "border-blue-500" : "border-blue-400"} bg-blue-50/30 rounded-sm cursor-move select-none`}
+      className={`absolute border-2 ${borderColor} bg-blue-50/30 rounded-sm cursor-move select-none`}
       style={style}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
@@ -131,6 +136,9 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
           <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-ne-resize" onMouseDown={onResizeStart("ne")} />
           <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-sw-resize" onMouseDown={onResizeStart("sw")} />
           <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-se-resize" onMouseDown={onResizeStart("se")} />
+          {/* Internal guide markers when near page center */}
+          {nearCenterX && <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] bg-pink-500/70 pointer-events-none" />}
+          {nearCenterY && <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-pink-500/70 pointer-events-none" />}
         </>
       )}
     </div>

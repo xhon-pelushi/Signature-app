@@ -22,7 +22,7 @@ export default function SignPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const { fields, addField, updateField, removeField, setAll } = useFields();
+  const { fields, addField, updateField, removeField, setAll, undo, redo, canUndo, canRedo } = useFields();
   const [downloading, setDownloading] = useState(false);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const { signatureDataUrl, setFromDataUrl, clear: clearSignature } = useSignature();
@@ -309,7 +309,8 @@ export default function SignPage() {
                       onChange={(e) => setTypedFont(e.target.value)}
                       className="border border-gray-300 bg-white rounded px-2 py-2"
                     >
-                      <option value="cursive">Cursive</option>
+                      <option value='"Dancing Script", cursive'>Cursive (Dancing Script)</option>
+                      <option value="cursive">Cursive (system)</option>
                       <option value="serif">Serif</option>
                       <option value="sans-serif">Sans</option>
                     </select>
@@ -424,6 +425,23 @@ export default function SignPage() {
                   <div className="h-4 w-4 bg-orange-600 rounded mr-3"></div>
                   Date Field
                 </button>
+              </div>
+            </div>
+
+            {/* Editing Tools */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Editing</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  className="px-3 py-1.5 rounded border disabled:opacity-50"
+                  onClick={undo}
+                  disabled={!canUndo}
+                >Undo</button>
+                <button
+                  className="px-3 py-1.5 rounded border disabled:opacity-50"
+                  onClick={redo}
+                  disabled={!canRedo}
+                >Redo</button>
               </div>
             </div>
 
