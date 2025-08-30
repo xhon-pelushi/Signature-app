@@ -29,6 +29,13 @@ export default function SignPage() {
   const [typedName, setTypedName] = useState("");
   const [typedFont, setTypedFont] = useState("cursive");
   const uploadSigInputRef = useRef<HTMLInputElement>(null);
+  type Signer = { id: string; name: string; colorClass: string };
+  const [signers, setSigners] = useState<Signer[]>([
+    { id: "s1", name: "Signer 1", colorClass: "border-emerald-500" },
+    { id: "s2", name: "Signer 2", colorClass: "border-amber-500" },
+  ]);
+  const [newSignerName, setNewSignerName] = useState("");
+  const [newSignerColor, setNewSignerColor] = useState("border-sky-500");
 
   // Keyboard nudging for selected field
   useEffect(() => {
@@ -100,9 +107,10 @@ export default function SignPage() {
     try {
       const raw = localStorage.getItem(key);
       if (raw) {
-        const parsed = JSON.parse(raw) as { fields: FieldsByPage; signatureDataUrl?: string };
+        const parsed = JSON.parse(raw) as { fields: FieldsByPage; signatureDataUrl?: string; signers?: Signer[] };
         if (parsed?.fields) setAll(parsed.fields);
         if (parsed?.signatureDataUrl) setFromDataUrl(parsed.signatureDataUrl);
+        if (parsed?.signers?.length) setSigners(parsed.signers);
       }
     } catch {}
   }, [uploadedFile]);
@@ -111,10 +119,10 @@ export default function SignPage() {
     if (!uploadedFile) return;
     const key = `sigapp:${uploadedFile.name}`;
     try {
-      const data = JSON.stringify({ fields, signatureDataUrl });
+      const data = JSON.stringify({ fields, signatureDataUrl, signers });
       localStorage.setItem(key, data);
     } catch {}
-  }, [uploadedFile, fields, signatureDataUrl]);
+  }, [uploadedFile, fields, signatureDataUrl, signers]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -214,8 +222,40 @@ export default function SignPage() {
                           onPageChange={setCurrentPage}
                           overlay={({ width, height, page }) => {
                             const pageFields = fields[page] || [];
+                            const selected = pageFields.find((f) => f.id === selectedFieldId);
+                            const eps = 0.006;
+                            const hLines: number[] = [];
+                            const vLines: number[] = [];
+                            const pushUniq = (arr: number[], v: number) => {
+                              const rounded = Math.round(v * 1000) / 1000;
+                              if (!arr.some((x) => Math.abs(x - rounded) < 0.001)) arr.push(rounded);
+                            };
+                            if (selected) {
+                              const selX = [selected.x, selected.x + selected.w / 2, selected.x + selected.w];
+                              const selY = [selected.y, selected.y + selected.h / 2, selected.y + selected.h];
+                              // Compare with page bounds and center
+                              [0, 0.5, 1].forEach((p) => {
+                                if (selX.some((x) => Math.abs(x - p) < eps)) pushUniq(vLines, p * width);
+                                if (selY.some((y) => Math.abs(y - p) < eps)) pushUniq(hLines, p * height);
+                              });
+                              // Compare with other fields
+                              for (const ofield of pageFields) {
+                                if (ofield.id === selected.id) continue;
+                                const oX = [ofield.x, ofield.x + ofield.w / 2, ofield.x + ofield.w];
+                                const oY = [ofield.y, ofield.y + ofield.h / 2, ofield.y + ofield.h];
+                                for (const sx of selX) for (const ox of oX) if (Math.abs(sx - ox) < eps) pushUniq(vLines, ox * width);
+                                for (const sy of selY) for (const oy of oY) if (Math.abs(sy - oy) < eps) pushUniq(hLines, oy * height);
+                              }
+                            }
                             return (
                               <>
+                                {/* Alignment guides */}
+                                {hLines.map((y) => (
+                                  <div key={`h-${y}`} className="absolute left-0 right-0 h-px bg-pink-500/70 pointer-events-none" style={{ top: y }} />
+                                ))}
+                                {vLines.map((x) => (
+                                  <div key={`v-${x}`} className="absolute top-0 bottom-0 w-px bg-pink-500/70 pointer-events-none" style={{ left: x }} />
+                                ))}
                                 {pageFields.map((f) => (
                                   <DraggableField
                                     key={f.id}
@@ -226,6 +266,7 @@ export default function SignPage() {
                                     onDelete={(id) => removeField(page, id)}
                                     selected={selectedFieldId === f.id}
                                     onSelect={(id) => setSelectedFieldId(id)}
+                                    color={signers.find((s) => s.id === f.signerId)?.colorClass}
                                   />
                                 ))}
                               </>
@@ -425,6 +466,63 @@ export default function SignPage() {
                   <div className="h-4 w-4 bg-orange-600 rounded mr-3"></div>
                   Date Field
                 </button>
+              </div>
+            </div>
+
+            {/* Signers */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Signers</h3>
+              <div className="space-y-2">
+                {signers.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between border rounded px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-block w-3 h-3 rounded-full ${s.colorClass.replace('border-', 'bg-')}`}></span>
+                      <span>{s.name}</span>
+                    </div>
+                    <button
+                      className="text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                      disabled={!selectedFieldId}
+                      onClick={() => {
+                        if (!selectedFieldId) return;
+                        const list = fields[currentPage] || [];
+                        const fld = list.find((f) => f.id === selectedFieldId);
+                        if (!fld) return;
+                        updateField(currentPage, fld.id, { ...fld, signerId: s.id });
+                      }}
+                    >Assign selected</button>
+                  </div>
+                ))}
+                <div className="mt-3">
+                  <div className="text-sm text-gray-700 mb-1">Add signer</div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={newSignerName}
+                      onChange={(e) => setNewSignerName(e.target.value)}
+                      placeholder="Name"
+                      className="border border-gray-300 rounded px-2 py-1 flex-1"
+                    />
+                    <select
+                      value={newSignerColor}
+                      onChange={(e) => setNewSignerColor(e.target.value)}
+                      className="border border-gray-300 rounded px-2 py-1"
+                    >
+                      <option value="border-sky-500">Blue</option>
+                      <option value="border-emerald-500">Green</option>
+                      <option value="border-amber-500">Amber</option>
+                      <option value="border-rose-500">Rose</option>
+                      <option value="border-purple-500">Purple</option>
+                    </select>
+                    <button
+                      className="px-3 py-1.5 rounded border disabled:opacity-50"
+                      disabled={!newSignerName.trim()}
+                      onClick={() => {
+                        const id = `s${Date.now()}`;
+                        setSigners((prev) => [...prev, { id, name: newSignerName.trim(), colorClass: newSignerColor }]);
+                        setNewSignerName("");
+                      }}
+                    >Add</button>
+                  </div>
+                </div>
               </div>
             </div>
 
