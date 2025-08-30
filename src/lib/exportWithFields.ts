@@ -3,11 +3,24 @@ import type { Field } from "@/types/fields";
 
 export type FieldsByPage = Record<number, Field[]>; // 1-based page index
 
-export async function exportWithFields(input: File | Blob | ArrayBuffer, fields: FieldsByPage): Promise<Blob> {
+export async function exportWithFields(
+  input: File | Blob | ArrayBuffer,
+  fields: FieldsByPage,
+  opts?: { signatureDataUrl?: string }
+): Promise<Blob> {
   const bytes = input instanceof ArrayBuffer ? input : await input.arrayBuffer();
   const pdfDoc = await PDFDocument.load(bytes);
   const pages = pdfDoc.getPages();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+  let signatureImage: any | undefined;
+  if (opts?.signatureDataUrl) {
+    try {
+      signatureImage = await pdfDoc.embedPng(opts.signatureDataUrl);
+    } catch {
+      signatureImage = undefined;
+    }
+  }
 
   for (let i = 0; i < pages.length; i++) {
     const pageIndex = i + 1; // 1-based
@@ -26,9 +39,21 @@ export async function exportWithFields(input: File | Blob | ArrayBuffer, fields:
 
       switch (f.type) {
         case "signature": {
-          // Draw a signature box and placeholder text
-          page.drawRectangle({ x, y, width: w, height: h, borderColor: rgb(0.16, 0.4, 0.8), borderWidth: 1 });
-          page.drawText("Sign here", { x: x + 4, y: y + h / 2 - 5, size: Math.max(8, Math.min(14, h * 0.4)), font, color: rgb(0.16, 0.4, 0.8) });
+          if (signatureImage) {
+            // Draw the signature image proportionally inside the box
+            const imgW = signatureImage.width;
+            const imgH = signatureImage.height;
+            const scale = Math.min(w / imgW, h / imgH);
+            const dw = imgW * scale;
+            const dh = imgH * scale;
+            const cx = x + (w - dw) / 2;
+            const cy = y + (h - dh) / 2;
+            page.drawImage(signatureImage, { x: cx, y: cy, width: dw, height: dh });
+            page.drawRectangle({ x, y, width: w, height: h, borderColor: rgb(0.16, 0.4, 0.8), borderWidth: 0.5 });
+          } else {
+            page.drawRectangle({ x, y, width: w, height: h, borderColor: rgb(0.16, 0.4, 0.8), borderWidth: 1 });
+            page.drawText("Sign here", { x: x + 4, y: y + h / 2 - 5, size: Math.max(8, Math.min(14, h * 0.4)), font, color: rgb(0.16, 0.4, 0.8) });
+          }
           break;
         }
         case "text": {

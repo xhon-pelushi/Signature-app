@@ -10,6 +10,8 @@ import { useFields } from "@/hooks/useFields";
 // types are used within hooks/components; explicit imports not needed here
 import { DraggableField } from "@/components/signature/DraggableField";
 import { exportWithFields } from "@/lib/exportWithFields";
+import { useSignature } from "@/hooks/useSignature";
+import { SignatureCanvas } from "@/components/signature/SignatureCanvas";
 
 // Dynamically import PDFViewer to keep SSR clean
 const PDFViewer = dynamic(() => import("@/components/pdf/PDFViewer"), { ssr: false });
@@ -23,6 +25,10 @@ export default function SignPage() {
   const { fields, addField, updateField, removeField } = useFields();
   const [downloading, setDownloading] = useState(false);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  const { signatureDataUrl, setFromDataUrl, clear: clearSignature } = useSignature();
+  const [typedName, setTypedName] = useState("");
+  const [typedFont, setTypedFont] = useState("cursive");
+  const uploadSigInputRef = useRef<HTMLInputElement>(null);
 
   // Keyboard nudging for selected field
   useEffect(() => {
@@ -262,31 +268,98 @@ export default function SignPage() {
               </div>
 
               {/* Signature Canvas/Input */}
-              <div className="border border-gray-300 rounded-lg h-32 bg-gray-50 flex items-center justify-center mb-4">
+              <div className="border border-gray-300 rounded-lg bg-gray-50 p-3 mb-4">
                 {signatureMode === 'draw' && (
-                  <p className="text-gray-500 text-sm">Signature canvas will be here</p>
+                  <SignatureCanvas onChange={(dataUrl) => setFromDataUrl(dataUrl)} />
                 )}
                 {signatureMode === 'type' && (
-                  <input
-                    type="text"
-                    placeholder="Type your name"
-                    className="border-none bg-transparent text-2xl font-cursive text-center w-full outline-none"
-                    style={{ fontFamily: 'cursive' }}
-                  />
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      placeholder="Type your name"
+                      value={typedName}
+                      onChange={(e) => setTypedName(e.target.value)}
+                      className="border border-gray-300 bg-white rounded px-3 py-2 flex-1"
+                    />
+                    <select
+                      value={typedFont}
+                      onChange={(e) => setTypedFont(e.target.value)}
+                      className="border border-gray-300 bg-white rounded px-2 py-2"
+                    >
+                      <option value="cursive">Cursive</option>
+                      <option value="serif">Serif</option>
+                      <option value="sans-serif">Sans</option>
+                    </select>
+                  </div>
                 )}
                 {signatureMode === 'upload' && (
                   <div className="text-center">
-                    <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500 text-sm">Upload signature image</p>
+                    <input
+                      ref={uploadSigInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          if (typeof reader.result === 'string') setFromDataUrl(reader.result);
+                        };
+                        reader.readAsDataURL(f);
+                      }}
+                      className="block mx-auto"
+                    />
+                    <p className="text-gray-500 text-sm mt-2">Upload signature image</p>
+                  </div>
+                )}
+                {signatureDataUrl && (
+                  <div className="mt-3">
+                    <div className="text-xs text-gray-600 mb-1">Preview:</div>
+                    <div className="border rounded bg-white inline-block px-2 py-1">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={signatureDataUrl} alt="Signature preview" className="max-h-16" />
+                    </div>
                   </div>
                 )}
               </div>
 
               <div className="space-y-2">
-                <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                <button
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                  onClick={() => {
+                    if (signatureMode === 'type') {
+                      // Render typed signature to a canvas and save as dataURL
+                      const canvas = document.createElement('canvas');
+                      const w = 600, h = 200;
+                      canvas.width = w;
+                      canvas.height = h;
+                      const ctx = canvas.getContext('2d');
+                      if (ctx) {
+                        ctx.fillStyle = '#fff';
+                        ctx.fillRect(0, 0, w, h);
+                        ctx.fillStyle = '#000';
+                        const fontFamily = typedFont;
+                        ctx.font = `64px ${fontFamily}`;
+                        ctx.textBaseline = 'middle';
+                        const metrics = ctx.measureText(typedName || 'Signature');
+                        const x = (w - metrics.width) / 2;
+                        const y = h / 2;
+                        ctx.fillText(typedName || 'Signature', Math.max(10, x), y);
+                        setFromDataUrl(canvas.toDataURL('image/png'));
+                      }
+                    }
+                    // draw and upload modes already set dataUrl via onChange or file input
+                  }}
+                >
                   Save Signature
                 </button>
-                <button className="w-full border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50">
+                <button
+                  className="w-full border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50"
+                  onClick={() => {
+                    clearSignature();
+                    setTypedName("");
+                  }}
+                >
                   Clear
                 </button>
               </div>
@@ -338,14 +411,14 @@ export default function SignPage() {
                 <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
                   Preview Document
                 </button>
-                <button
+        <button
                   className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                   disabled={!uploadedFile || downloading}
                   onClick={async () => {
                     if (!uploadedFile) return;
                     try {
                       setDownloading(true);
-                      const blob = await exportWithFields(uploadedFile, fields);
+                      const blob = await exportWithFields(uploadedFile, fields, { signatureDataUrl: signatureDataUrl ?? undefined });
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement("a");
                       a.href = url;
