@@ -22,6 +22,32 @@ export default function SignPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const { fields, addField, updateField, removeField } = useFields();
   const [downloading, setDownloading] = useState(false);
+  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+
+  // Keyboard nudging for selected field
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!selectedFieldId) return;
+      const list = fields[currentPage] || [];
+      const f = list.find((x) => x.id === selectedFieldId);
+      if (!f) return;
+      const step = e.shiftKey ? 0.01 : 0.0025; // fine vs coarse
+      let dx = 0;
+      let dy = 0;
+      if (e.key === "ArrowLeft") dx = -step;
+      else if (e.key === "ArrowRight") dx = step;
+      else if (e.key === "ArrowUp") dy = -step;
+      else if (e.key === "ArrowDown") dy = step;
+      else if (e.key === "Escape") { setSelectedFieldId(null); return; }
+      else return;
+      e.preventDefault();
+      const nx = Math.min(1 - f.w, Math.max(0, f.x + dx));
+      const ny = Math.min(1 - f.h, Math.max(0, f.y + dy));
+      updateField(currentPage, f.id, { ...f, x: Math.round(nx * 1000) / 1000, y: Math.round(ny * 1000) / 1000 });
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [selectedFieldId, currentPage, fields, updateField]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -169,6 +195,8 @@ export default function SignPage() {
                                     pageHeight={height}
                                     onChange={(nf) => updateField(page, f.id, nf)}
                                     onDelete={(id) => removeField(page, id)}
+                                    selected={selectedFieldId === f.id}
+                                    onSelect={(id) => setSelectedFieldId(id)}
                                   />
                                 ))}
                               </>
