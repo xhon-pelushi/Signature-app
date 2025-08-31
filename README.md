@@ -109,6 +109,8 @@ src/
 ## 📚 Documentation
 
 - See docs/roadmap.md for upcoming features and milestones.
+- See docs/changelog.md for a list of changes.
+- See docs/troubleshooting.md for common issues and fixes.
 
 ## 🎨 Design System
 
