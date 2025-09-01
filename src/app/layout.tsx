@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Dancing_Script } from "next/font/google";
 import "./globals.css";
+import AuthProvider from "@/components/auth/AuthProvider";
+import { AuthStatus } from "@/components/auth/AuthStatus";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +33,17 @@ export default function RootLayout({
   return (
     <html lang="en">
   <body className={`${geistSans.variable} ${geistMono.variable} ${dancing.variable} antialiased`}>
-        {children}
+        <AuthProvider>
+          <header className="w-full border-b bg-white/80 sticky top-0 backdrop-blur z-50">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+              <Link className="font-semibold" href="/">Signature App</Link>
+              <AuthStatus />
+            </div>
+          </header>
+          <main className="max-w-5xl mx-auto px-4 py-6">
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );

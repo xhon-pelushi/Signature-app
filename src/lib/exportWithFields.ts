@@ -1,4 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import type { PDFImage } from "pdf-lib";
 import type { Field } from "@/types/fields";
 
 export type FieldsByPage = Record<number, Field[]>; // 1-based page index
@@ -13,7 +14,7 @@ export async function exportWithFields(
   const pages = pdfDoc.getPages();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  let signatureImage: any | undefined;
+  let signatureImage: PDFImage | undefined;
   if (opts?.signatureDataUrl) {
     try {
       signatureImage = await pdfDoc.embedPng(opts.signatureDataUrl);

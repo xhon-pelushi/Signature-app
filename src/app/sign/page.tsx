@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Upload, FileText, Download, PenTool, Type, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { createEmptyPdf } from "@/lib/createEmptyPdf";
 import dynamic from "next/dynamic";
 const ThumbnailsRail = dynamic(() => import("@/components/pdf/ThumbnailsRail"), { ssr: false });
@@ -17,6 +19,8 @@ import { SignatureCanvas } from "@/components/signature/SignatureCanvas";
 const PDFViewer = dynamic(() => import("@/components/pdf/PDFViewer"), { ssr: false });
 
 export default function SignPage() {
+  const router = useRouter();
+  const { data: session } = useSession();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [signatureMode, setSignatureMode] = useState<'draw' | 'type' | 'upload'>('draw');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -136,10 +140,32 @@ export default function SignPage() {
               <span className="ml-2 text-xl font-bold text-gray-900">SignatureApp</span>
             </Link>
             <div className="flex items-center space-x-4">
-              <button className="text-gray-600 hover:text-gray-900">
+              <button
+                className="text-gray-600 hover:text-gray-900"
+                onClick={() => {
+                  // Minimal draft persistence is already in localStorage via effects
+                  alert("Draft saved locally.");
+                }}
+              >
                 Save Draft
               </button>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                disabled={!uploadedFile}
+                onClick={async () => {
+                  if (!uploadedFile) return;
+                  if (!session?.user?.email) {
+                    router.push("/signin");
+                    return;
+                  }
+                  // Simulate sending by generating a flattened copy and opening a preview
+                  const blob = await exportWithFields(uploadedFile, fields, { signatureDataUrl: signatureDataUrl ?? undefined });
+                  const url = URL.createObjectURL(blob);
+                  window.open(url, "_blank");
+                  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+                  alert(`Sent for signature to ${session.user.email} (simulation).`);
+                }}
+              >
                 Send for Signature
               </button>
             </div>
@@ -192,7 +218,21 @@ export default function SignPage() {
                       <span className="font-medium text-gray-900">{uploadedFile.name}</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button className="p-2 text-gray-400 hover:text-gray-600">
+                      <button
+                        className="p-2 text-gray-400 hover:text-gray-600"
+                        title="Download original"
+                        onClick={() => {
+                          if (!uploadedFile) return;
+                          const url = URL.createObjectURL(uploadedFile);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = uploadedFile.name;
+                          document.body.appendChild(a);
+                          a.click();
+                          a.remove();
+                          setTimeout(() => URL.revokeObjectURL(url), 0);
+                        }}
+                      >
                         <Download className="h-4 w-4" />
                       </button>
                       <button 
@@ -554,7 +594,17 @@ export default function SignPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
               <div className="space-y-2">
-                <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+                <button
+                  className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  disabled={!uploadedFile}
+                  onClick={async () => {
+                    if (!uploadedFile) return;
+                    const blob = await exportWithFields(uploadedFile, fields, { signatureDataUrl: signatureDataUrl ?? undefined });
+                    const url = URL.createObjectURL(blob);
+                    window.open(url, "_blank");
+                    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+                  }}
+                >
                   Preview Document
                 </button>
         <button

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Field } from "@/types/fields";
 
 type Props = {
@@ -30,10 +30,10 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
   const clamp = (nf: Field) => {
     const minW = 0.04;
     const minH = 0.02;
-    let x = snap(Math.max(0, Math.min(1 - nf.w, nf.x)));
-    let y = snap(Math.max(0, Math.min(1 - nf.h, nf.y)));
-    let w = snap(Math.max(minW, Math.min(1 - x, nf.w)));
-    let h = snap(Math.max(minH, Math.min(1 - y, nf.h)));
+    const x = snap(Math.max(0, Math.min(1 - nf.w, nf.x)));
+    const y = snap(Math.max(0, Math.min(1 - nf.h, nf.y)));
+    const w = snap(Math.max(minW, Math.min(1 - x, nf.w)));
+    const h = snap(Math.max(minH, Math.min(1 - y, nf.h)));
     return { ...nf, x: px(x), y: px(y), w: px(w), h: px(h) } as Field;
   };
 
@@ -46,42 +46,51 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
     onSelect?.(field.id);
   };
 
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!start || !startField) return;
-    const dx = (e.clientX - start.x) / pageWidth;
-    const dy = (e.clientY - start.y) / pageHeight;
-
-    if (resizing) {
-      let nf: Field = { ...startField };
-      if (resizing === "nw") {
-        nf.x = startField.x + dx;
-        nf.y = startField.y + dy;
-        nf.w = startField.w - dx;
-        nf.h = startField.h - dy;
-      } else if (resizing === "ne") {
-        nf.y = startField.y + dy;
-        nf.w = startField.w + dx;
-        nf.h = startField.h - dy;
-      } else if (resizing === "sw") {
-        nf.x = startField.x + dx;
-        nf.w = startField.w - dx;
-        nf.h = startField.h + dy;
-      } else if (resizing === "se") {
-        nf.w = startField.w + dx;
-        nf.h = startField.h + dy;
+  useEffect(() => {
+    if (!dragging && !resizing) return;
+    const onMove = (e: MouseEvent) => {
+      if (!start || !startField) return;
+      const dx = (e.clientX - start.x) / pageWidth;
+      const dy = (e.clientY - start.y) / pageHeight;
+      if (resizing) {
+        const nf: Field = { ...startField };
+        if (resizing === "nw") {
+          nf.x = startField.x + dx;
+          nf.y = startField.y + dy;
+          nf.w = startField.w - dx;
+          nf.h = startField.h - dy;
+        } else if (resizing === "ne") {
+          nf.y = startField.y + dy;
+          nf.w = startField.w + dx;
+          nf.h = startField.h - dy;
+        } else if (resizing === "sw") {
+          nf.x = startField.x + dx;
+          nf.w = startField.w - dx;
+          nf.h = startField.h + dy;
+        } else if (resizing === "se") {
+          nf.w = startField.w + dx;
+          nf.h = startField.h + dy;
+        }
+        onChange(clamp(nf));
+        return;
       }
-      onChange(clamp(nf));
-      return;
-    }
-
-    if (dragging) {
-      const nx = Math.min(1 - startField.w, Math.max(0, startField.x + dx));
-      const ny = Math.min(1 - startField.h, Math.max(0, startField.y + dy));
-      onChange({ ...startField, x: px(nx), y: px(ny) });
-    }
-  };
-
-  const onMouseUp = () => { setDragging(false); setResizing(null); };
+      if (dragging) {
+        const nx = Math.min(1 - startField.w, Math.max(0, startField.x + dx));
+        const ny = Math.min(1 - startField.h, Math.max(0, startField.y + dy));
+        onChange({ ...startField, x: px(nx), y: px(ny) });
+      }
+    };
+    const onUp = () => {
+      setDragging(false);
+      setResizing(null);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [dragging, resizing, start, startField, pageWidth, pageHeight, onChange]);
 
   const onResizeStart = (corner: Corner) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -109,8 +118,7 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
       className={`absolute border-2 ${borderColor} bg-blue-50/30 rounded-sm cursor-move select-none`}
       style={style}
       onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
+      
     >
       <div className="flex items-center justify-between text-[10px] text-blue-700 px-1 py-0.5 bg-blue-50/70" onMouseDown={(e) => { e.stopPropagation(); onSelect?.(field.id); }}>
         <span className="flex items-center gap-1">

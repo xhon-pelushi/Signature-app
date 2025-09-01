@@ -14,10 +14,14 @@ import { Spinner } from "@/components/ui/Spinner";
 
 // Configure pdf.js worker to match the exact API version react-pdf is using
 // This avoids "API version X does not match Worker version Y" errors.
-// React-pdf's bundled API currently reports 5.3.31 in your environment; pin worker to match.
-// If this changes in the future, we can switch back to deriving from pdfjs.version reliably.
-pdfjs.GlobalWorkerOptions.workerSrc =
-  "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.31/build/pdf.worker.min.mjs?v=5.3.31";
+// Pick the worker version dynamically to avoid mismatches between API and worker.
+// Fallback to the installed pdfjs-dist version when unavailable.
+try {
+  const v = (pdfjs as unknown as { version?: string }).version || "5.4.54";
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${v}/build/pdf.worker.min.mjs`;
+} catch {
+  pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.54/build/pdf.worker.min.mjs";
+}
 
 type PDFViewerProps = {
   file: File | string | ArrayBuffer;
@@ -231,7 +235,7 @@ export default function PDFViewer({
                   scale={scale}
                   width={pageWidth}
                   renderTextLayer={false}
-                  renderAnnotationLayer
+                  renderAnnotationLayer={false}
                 />
                 {/* Overlay area positioned on top of the page */}
                 <div className="absolute inset-0 pointer-events-none">
