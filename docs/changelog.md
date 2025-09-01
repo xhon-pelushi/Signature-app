@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 ## 2025-08-31
 - Documentation: Add troubleshooting guide and link docs in README.
 
+## 2025-09-01
+- UX: Add signer badges on fields and a toggle to show/hide alignment guides.
+
 ## 2025-08-27
 - Integrate thumbnails sidebar with page navigation
 - Add draggable overlay fields (signature/text/checkbox/date scaffolding)

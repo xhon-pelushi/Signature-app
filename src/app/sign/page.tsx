@@ -36,6 +36,7 @@ export default function SignPage() {
   ]);
   const [newSignerName, setNewSignerName] = useState("");
   const [newSignerColor, setNewSignerColor] = useState("border-sky-500");
+  const [showGuides, setShowGuides] = useState(true);
 
   // Keyboard nudging for selected field
   useEffect(() => {
@@ -267,6 +268,8 @@ export default function SignPage() {
                                     selected={selectedFieldId === f.id}
                                     onSelect={(id) => setSelectedFieldId(id)}
                                     color={signers.find((s) => s.id === f.signerId)?.colorClass}
+                                    signerName={signers.find((s) => s.id === f.signerId)?.name}
+                                    showGuides={showGuides}
                                   />
                                 ))}
                               </>
@@ -434,6 +437,10 @@ export default function SignPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Fields</h3>
               <div className="space-y-2">
+                <label className="flex items-center gap-2 mb-2 text-sm text-gray-700">
+                  <input type="checkbox" className="accent-blue-600" checked={showGuides} onChange={(e) => setShowGuides(e.target.checked)} />
+                  Show alignment guides
+                </label>
                 <button
                   className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center"
                   onClick={() => addField(currentPage, "signature")}

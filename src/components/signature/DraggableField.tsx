@@ -12,11 +12,13 @@ type Props = {
   selected?: boolean;
   onSelect?: (id: string) => void;
   color?: string; // border color based on signer
+  signerName?: string; // optional signer label
+  showGuides?: boolean; // global guides toggle
 };
 
 type Corner = "nw" | "ne" | "sw" | "se";
 
-export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelete, selected, onSelect, color }: Props) {
+export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelete, selected, onSelect, color, signerName, showGuides = true }: Props) {
   const elRef = useRef<HTMLDivElement | null>(null);
   const [dragging, setDragging] = useState(false);
   const [start, setStart] = useState<{ x: number; y: number } | null>(null);
@@ -111,7 +113,15 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
       onMouseUp={onMouseUp}
     >
       <div className="flex items-center justify-between text-[10px] text-blue-700 px-1 py-0.5 bg-blue-50/70" onMouseDown={(e) => { e.stopPropagation(); onSelect?.(field.id); }}>
-        <span>{field.type}</span>
+        <span className="flex items-center gap-1">
+          <span>{field.type}</span>
+          {signerName && (
+            <span className="ml-1 inline-flex items-center gap-1 px-1 py-0.5 rounded bg-white/70 text-[9px] text-gray-800 border border-gray-200">
+              <span className="i-mdi-account text-[10px]" aria-hidden="true" />
+              {signerName}
+            </span>
+          )}
+        </span>
         {onDelete && (
           <button
             type="button"
@@ -137,8 +147,8 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
           <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-sw-resize" onMouseDown={onResizeStart("sw")} />
           <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-se-resize" onMouseDown={onResizeStart("se")} />
           {/* Internal guide markers when near page center */}
-          {nearCenterX && <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] bg-pink-500/70 pointer-events-none" />}
-          {nearCenterY && <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-pink-500/70 pointer-events-none" />}
+          {showGuides && nearCenterX && <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] bg-pink-500/70 pointer-events-none" />}
+          {showGuides && nearCenterY && <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-pink-500/70 pointer-events-none" />}
         </>
       )}
     </div>
