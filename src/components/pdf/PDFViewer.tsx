@@ -238,7 +238,7 @@ export default function PDFViewer({
                   renderAnnotationLayer={false}
                 />
                 {/* Overlay area positioned on top of the page */}
-                <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-0 pointer-events-none z-10">
                   <div className="relative w-full h-full pointer-events-auto">
                     {typeof overlay === "function"
                       ? overlay({ width: pageSize.width, height: pageSize.height, page: pageNumber, scale })
