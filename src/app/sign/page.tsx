@@ -227,11 +227,11 @@ export default function SignPage() {
                             const eps = 0.006;
                             const hLines: number[] = [];
                             const vLines: number[] = [];
-                            const pushUniq = (arr: number[], v: number) => {
-                              const rounded = Math.round(v * 1000) / 1000;
-                              if (!arr.some((x) => Math.abs(x - rounded) < 0.001)) arr.push(rounded);
-                            };
-                            if (selected) {
+                            if (showGuides && selected) {
+                              const pushUniq = (arr: number[], v: number) => {
+                                const rounded = Math.round(v * 1000) / 1000;
+                                if (!arr.some((x) => Math.abs(x - rounded) < 0.001)) arr.push(rounded);
+                              };
                               const selX = [selected.x, selected.x + selected.w / 2, selected.x + selected.w];
                               const selY = [selected.y, selected.y + selected.h / 2, selected.y + selected.h];
                               // Compare with page bounds and center
@@ -251,10 +251,10 @@ export default function SignPage() {
                             return (
                               <>
                                 {/* Alignment guides */}
-                                {hLines.map((y) => (
+                                {showGuides && hLines.map((y) => (
                                   <div key={`h-${y}`} className="absolute left-0 right-0 h-px bg-pink-500/70 pointer-events-none" style={{ top: y }} />
                                 ))}
-                                {vLines.map((x) => (
+                                {showGuides && vLines.map((x) => (
                                   <div key={`v-${x}`} className="absolute top-0 bottom-0 w-px bg-pink-500/70 pointer-events-none" style={{ left: x }} />
                                 ))}
                                 {pageFields.map((f) => (
