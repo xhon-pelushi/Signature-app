@@ -38,8 +38,7 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
   };
 
   const onMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  e.preventDefault();
     setDragging(true);
     setStart({ x: e.clientX, y: e.clientY });
     setStartField({ ...field });
@@ -120,7 +119,7 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
       onMouseDown={onMouseDown}
       
     >
-      <div className="flex items-center justify-between text-[10px] text-blue-700 px-1 py-0.5 bg-blue-50/70" onMouseDown={(e) => { e.stopPropagation(); onSelect?.(field.id); }}>
+  <div className="flex items-center justify-between text-[10px] text-blue-700 px-1 py-0.5 bg-blue-50/70" onMouseDown={() => { onSelect?.(field.id); }}>
         <span className="flex items-center gap-1">
           <span>{field.type}</span>
           {signerName && (

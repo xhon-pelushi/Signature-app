@@ -92,7 +92,7 @@ export default function SignPage() {
     setUploadedFile(sampleFile);
   };
 
-  // Create an object URL for react-pdf
+  // Create an object URL for react-pdf (run only when file changes)
   useEffect(() => {
     if (!uploadedFile) {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
@@ -102,7 +102,7 @@ export default function SignPage() {
     const url = URL.createObjectURL(uploadedFile);
     setPdfUrl(url);
     return () => URL.revokeObjectURL(url);
-  }, [uploadedFile, pdfUrl]);
+  }, [uploadedFile]);
 
   // Persistence: load/save fields & signature per document name
   useEffect(() => {
