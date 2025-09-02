@@ -43,6 +43,8 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
     setStart({ x: e.clientX, y: e.clientY });
     setStartField({ ...field });
     onSelect?.(field.id);
+    // Capture pointer so drag doesn't get interrupted by iframes/canvas
+    (e.currentTarget as HTMLElement).setPointerCapture?.((e as unknown as PointerEvent).pointerId ?? 1);
   };
 
   useEffect(() => {

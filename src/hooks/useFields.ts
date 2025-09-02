@@ -11,55 +11,55 @@ export function useFields() {
   const [redoStack, setRedoStack] = useState<FieldsByPage[]>([]);
 
   const snapshot = useCallback((src: FieldsByPage): FieldsByPage => JSON.parse(JSON.stringify(src)), []);
-  const commit = useCallback((next: FieldsByPage) => {
+  const apply = useCallback((next: FieldsByPage) => {
+    // Push current fields to history, clear redo, then set new fields.
     setHistory((h) => [...h, snapshot(fields)]);
     setRedoStack([]);
     setFields(next);
   }, [fields, snapshot]);
 
   const addField = useCallback((page: number, type: FieldType, init?: Partial<Field>) => {
-    setFields((prev) => {
-      const next: FieldsByPage = { ...prev };
-      const list = next[page] ? [...next[page]] : [];
-      const field: Field = {
-        id: crypto.randomUUID(),
-        type,
-        page,
-        x: 0.1,
-        y: 0.1,
-        w: type === "signature" ? 0.25 : 0.18,
-        h: type === "signature" ? 0.08 : 0.06,
-        ...init,
-      } as Field;
-      list.push(field);
-      next[page] = list;
-      commit(next);
-      return next;
-    });
-  }, [commit]);
+    const next: FieldsByPage = { ...fields };
+    const list = next[page] ? [...next[page]] : [];
+    const field: Field = {
+      id: crypto.randomUUID(),
+      type,
+      page,
+      x: 0.1,
+      y: 0.1,
+      w: type === "signature" ? 0.25 : 0.18,
+      h: type === "signature" ? 0.08 : 0.06,
+      ...init,
+    } as Field;
+    list.push(field);
+    next[page] = list;
+    apply(next);
+  }, [fields, apply]);
 
   const updateField = useCallback((page: number, id: string, patch: Partial<Field>) => {
-    setFields((prev) => {
-      const next: FieldsByPage = { ...prev };
-      const list = (next[page] || []).map((f) => (f.id === id ? { ...f, ...patch } : f));
-      next[page] = list;
-      commit(next);
-      return next;
-    });
-  }, [commit]);
+    const next: FieldsByPage = { ...fields };
+    const list = (next[page] || []).map((f) => (f.id === id ? { ...f, ...patch } : f));
+    next[page] = list;
+    apply(next);
+  }, [fields, apply]);
 
   const removeField = useCallback((page: number, id: string) => {
-    setFields((prev) => {
-      const next: FieldsByPage = { ...prev };
-      const list = (next[page] || []).filter((f) => f.id !== id);
-      next[page] = list;
-      commit(next);
-      return next;
-    });
-  }, [commit]);
+    const next: FieldsByPage = { ...fields };
+    const list = (next[page] || []).filter((f) => f.id !== id);
+    next[page] = list;
+    apply(next);
+  }, [fields, apply]);
 
-  const clear = useCallback(() => { setHistory((h) => [...h, snapshot(fields)]); setRedoStack([]); setFields({}); }, [fields, snapshot]);
-  const setAll = useCallback((all: FieldsByPage) => { setHistory((h) => [...h, snapshot(fields)]); setRedoStack([]); setFields(all); }, [fields, snapshot]);
+  const clear = useCallback(() => {
+    setHistory((h) => [...h, snapshot(fields)]);
+    setRedoStack([]);
+    setFields({});
+  }, [fields, snapshot]);
+  const setAll = useCallback((all: FieldsByPage) => {
+    setHistory((h) => [...h, snapshot(fields)]);
+    setRedoStack([]);
+    setFields(all);
+  }, [fields, snapshot]);
 
   const undo = useCallback(() => {
     setHistory((h) => {
