@@ -93,7 +93,6 @@ export default function SignPage() {
   };
 
   // Create an object URL for react-pdf
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!uploadedFile) {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
@@ -103,7 +102,7 @@ export default function SignPage() {
     const url = URL.createObjectURL(uploadedFile);
     setPdfUrl(url);
     return () => URL.revokeObjectURL(url);
-  }, [uploadedFile]);
+  }, [uploadedFile, pdfUrl]);
 
   // Persistence: load/save fields & signature per document name
   useEffect(() => {
@@ -118,7 +117,7 @@ export default function SignPage() {
         if (parsed?.signers?.length) setSigners(parsed.signers);
       }
     } catch {}
-  }, [uploadedFile]);
+  }, [uploadedFile, setAll, setFromDataUrl]);
 
   useEffect(() => {
     if (!uploadedFile) return;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Document, Page } from "react-pdf";
+import { Document, Page, pdfjs } from "react-pdf";
 import { Spinner } from "@/components/ui/Spinner";
 
 type Props = {
@@ -11,6 +11,13 @@ type Props = {
 };
 
 export default function ThumbnailsRail({ file, onSelect, currentPage }: Props) {
+  // Ensure worker is configured here too, as this component may render before PDFViewer.
+  try {
+    const v = (pdfjs as unknown as { version?: string }).version || "5.4.54";
+    pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${v}/build/pdf.worker.min.mjs`;
+  } catch {
+    pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.54/build/pdf.worker.min.mjs";
+  }
   const [numPages, setNumPages] = useState(0);
   const fileProp = useMemo(() => (typeof file === "string" ? { url: file } : file), [file]);
 
