@@ -67,11 +67,21 @@ export default function SignPage() {
     return () => window.removeEventListener("keydown", handler);
   }, [selectedFieldId, currentPage, fields, updateField]);
 
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const MAX_MB = 25; // generous default
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setUploadedFile(file);
+    if (!file) return;
+    setUploadError(null);
+    if (file.type !== 'application/pdf') {
+      setUploadError('Please select a valid PDF file.');
+      return;
     }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      setUploadError(`File is too large. Max ${MAX_MB} MB.`);
+      return;
+    }
+    setUploadedFile(file);
   };
 
   const handleDragOver = (event: React.DragEvent) => {
@@ -80,10 +90,18 @@ export default function SignPage() {
 
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
+    setUploadError(null);
     const file = event.dataTransfer.files[0];
-    if (file && file.type === 'application/pdf') {
-      setUploadedFile(file);
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      setUploadError('Please drop a valid PDF file.');
+      return;
     }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      setUploadError(`File is too large. Max ${MAX_MB} MB.`);
+      return;
+    }
+    setUploadedFile(file);
   };
 
   const handleUseSample = async () => {
@@ -190,6 +208,9 @@ export default function SignPage() {
                 <p className="text-gray-600 mb-4">
                   Drag and drop your PDF file here, or click to browse
                 </p>
+                {uploadError && (
+                  <p className="text-sm text-red-600 mb-2">{uploadError}</p>
+                )}
                 <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
                   Choose File
                 </button>

@@ -24,6 +24,8 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
   const [start, setStart] = useState<{ x: number; y: number } | null>(null);
   const [startField, setStartField] = useState<Field | null>(null);
   const [resizing, setResizing] = useState<Corner | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const pendingRef = useRef<Field | null>(null);
 
   const px = (v: number) => Math.round(v * 1000) / 1000;
   const snap = (v: number, step = 0.005) => Math.round(v / step) * step;
@@ -38,13 +40,25 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
   };
 
   const onMouseDown = (e: React.MouseEvent) => {
-  e.preventDefault();
+    e.preventDefault();
     setDragging(true);
     setStart({ x: e.clientX, y: e.clientY });
     setStartField({ ...field });
     onSelect?.(field.id);
     // Capture pointer so drag doesn't get interrupted by iframes/canvas
     (e.currentTarget as HTMLElement).setPointerCapture?.((e as unknown as PointerEvent).pointerId ?? 1);
+  };
+
+  // rAF-throttle onChange to ~60fps to reduce re-renders during drag
+  const scheduleChange = (nf: Field) => {
+    pendingRef.current = nf;
+    if (rafIdRef.current == null) {
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        const next = pendingRef.current;
+        if (next) onChange(clamp(next));
+      });
+    }
   };
 
   useEffect(() => {
@@ -72,24 +86,32 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
           nf.w = startField.w + dx;
           nf.h = startField.h + dy;
         }
-        onChange(clamp(nf));
+        scheduleChange(nf);
         return;
       }
       if (dragging) {
         const nx = Math.min(1 - startField.w, Math.max(0, startField.x + dx));
         const ny = Math.min(1 - startField.h, Math.max(0, startField.y + dy));
-        onChange({ ...startField, x: px(nx), y: px(ny) });
+        scheduleChange({ ...startField, x: px(nx), y: px(ny) });
       }
     };
     const onUp = () => {
       setDragging(false);
       setResizing(null);
+      if (rafIdRef.current != null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
+      if (rafIdRef.current != null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     };
   }, [dragging, resizing, start, startField, pageWidth, pageHeight, onChange]);
 
@@ -107,6 +129,7 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
     top: field.y * pageHeight,
     width: field.w * pageWidth,
     height: field.h * pageHeight,
+    touchAction: "none" as const,
   } as const;
 
   const borderColor = color || (selected ? "border-blue-600" : dragging ? "border-blue-500" : "border-blue-400");
