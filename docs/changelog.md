@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-09-05
+- Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
+- UX: Minor tuning for drag/resize performance in signing overlay
+
 ## 2025-08-30
 - Add signer assignment UI with color-coding and per-document persistence
 - Show alignment guides when dragging/resizing fields (page edges/centers and other fields)
