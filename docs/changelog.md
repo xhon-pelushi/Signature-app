@@ -1,5 +1,9 @@
 # Changelog
 
+
+## 2025-09-06
+- Docs: Add detailed JSDoc to `createEmptyPdf` for improved API clarity and DX
+
 All notable changes to this project will be documented in this file.
 
 ## 2025-09-05

@@ -26,6 +26,21 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
   return [base[0], base[1]];
 }
 
+/**
+ * Generate a sample PDF for testing the viewer and signature workflow.
+ *
+ * @param title - The document title (drawn on each page and set as PDF metadata)
+ * @param options - PDF generation options:
+ *   - pages: number of pages (default 1)
+ *   - size: page size ("LETTER", "A4", or [width, height])
+ *   - orientation: "portrait" or "landscape"
+ *   - footer: whether to draw a footer with date/app name (default true)
+ *   - subject, author, keywords: PDF metadata
+ * @returns Blob of the generated PDF (application/pdf)
+ *
+ * Example:
+ *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
+ */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
   const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"] } = options;
 
