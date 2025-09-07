@@ -5,6 +5,9 @@
 - Docs: Add detailed JSDoc to `createEmptyPdf` for improved API clarity and DX
 
 All notable changes to this project will be documented in this file.
+ 
+## 2025-09-07
+- Perf: Debounce localStorage persistence for fields/signers/signature on the Sign page to reduce write churn during drag/resize and typing
 
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata

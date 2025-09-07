@@ -41,6 +41,7 @@ export default function SignPage() {
   const [newSignerName, setNewSignerName] = useState("");
   const [newSignerColor, setNewSignerColor] = useState("border-sky-500");
   const [showGuides, setShowGuides] = useState(true);
+  const saveTimerRef = useRef<number | null>(null);
 
   // Keyboard nudging for selected field
   useEffect(() => {
@@ -140,10 +141,24 @@ export default function SignPage() {
   useEffect(() => {
     if (!uploadedFile) return;
     const key = `sigapp:${uploadedFile.name}`;
-    try {
-      const data = JSON.stringify({ fields, signatureDataUrl, signers });
-      localStorage.setItem(key, data);
-    } catch {}
+    // Debounce saves to avoid excessive writes during drag/resize/typing
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    const payload = JSON.stringify({ fields, signatureDataUrl, signers });
+    saveTimerRef.current = window.setTimeout(() => {
+      try {
+        localStorage.setItem(key, payload);
+      } catch {}
+      saveTimerRef.current = null;
+    }, 300);
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+    };
   }, [uploadedFile, fields, signatureDataUrl, signers]);
 
   return (
