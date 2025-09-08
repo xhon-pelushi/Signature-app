@@ -53,6 +53,12 @@ export default function SignPage() {
       const step = e.shiftKey ? 0.01 : 0.0025; // fine vs coarse
       let dx = 0;
       let dy = 0;
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        removeField(currentPage, f.id);
+        setSelectedFieldId(null);
+        return;
+      }
       if (e.key === "ArrowLeft") dx = -step;
       else if (e.key === "ArrowRight") dx = step;
       else if (e.key === "ArrowUp") dy = -step;
@@ -345,6 +351,7 @@ export default function SignPage() {
                                     color={signers.find((s) => s.id === f.signerId)?.colorClass}
                                     signerName={signers.find((s) => s.id === f.signerId)?.name}
                                     showGuides={showGuides}
+                                    signaturePreviewUrl={f.type === 'signature' ? signatureDataUrl ?? undefined : undefined}
                                   />
                                 ))}
                               </>

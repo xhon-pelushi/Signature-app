@@ -14,11 +14,12 @@ type Props = {
   color?: string; // border color based on signer
   signerName?: string; // optional signer label
   showGuides?: boolean; // global guides toggle
+  signaturePreviewUrl?: string; // optional dataURL for signature preview content
 };
 
 type Corner = "nw" | "ne" | "sw" | "se";
 
-export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelete, selected, onSelect, color, signerName, showGuides = true }: Props) {
+export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelete, selected, onSelect, color, signerName, showGuides = true, signaturePreviewUrl }: Props) {
   const elRef = useRef<HTMLDivElement | null>(null);
   const [dragging, setDragging] = useState(false);
   const [start, setStart] = useState<{ x: number; y: number } | null>(null);
@@ -165,6 +166,19 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
             ×
           </button>
         )}
+      </div>
+      {/* Field content preview */}
+      <div className="absolute inset-0 p-1 overflow-hidden pointer-events-none">
+        {field.type === "signature" ? (
+          signaturePreviewUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={signaturePreviewUrl} alt="Signature" className="w-full h-full object-contain" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[11px] text-blue-700/80">Sign</div>
+          )
+        ) : field.type === "text" ? (
+          <div className="w-full h-full flex items-center px-2 text-[11px] text-gray-700/90 truncate">{field.label ?? "Text"}</div>
+        ) : null}
       </div>
       {selected && (
         <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded shadow">
