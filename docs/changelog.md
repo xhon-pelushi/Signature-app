@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 ## 2025-09-08
 - UX: Show live signature preview inside signature fields; keyboard Delete/Backspace removes the selected field
 
+## 2025-09-09
+- UX: Inline text field label editing (double-click a text field to rename its label)
+
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
 - UX: Minor tuning for drag/resize performance in signing overlay

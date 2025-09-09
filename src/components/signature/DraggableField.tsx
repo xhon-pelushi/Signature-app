@@ -143,6 +143,14 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
       className={`absolute border-2 ${borderColor} bg-blue-50/30 rounded-sm cursor-move select-none`}
       style={style}
       onMouseDown={onMouseDown}
+      onDoubleClick={() => {
+        if (field.type === 'text') {
+          const next = prompt('Text field label:', field.label || '');
+            if (next !== null) {
+              onChange({ ...field, label: next.trim() || undefined });
+            }
+        }
+      }}
       
     >
   <div className="flex items-center justify-between text-[10px] text-blue-700 px-1 py-0.5 bg-blue-50/70" onMouseDown={() => { onSelect?.(field.id); }}>
