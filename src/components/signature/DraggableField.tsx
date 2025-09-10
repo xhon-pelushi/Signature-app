@@ -186,6 +186,10 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
           )
         ) : field.type === "text" ? (
           <div className="w-full h-full flex items-center px-2 text-[11px] text-gray-700/90 truncate">{field.label ?? "Text"}</div>
+        ) : field.type === "date" ? (
+          <div className="w-full h-full flex items-center justify-center text-[11px] text-orange-700/90">
+            {new Date().toISOString().slice(0, 10)}
+          </div>
         ) : null}
       </div>
       {selected && (
