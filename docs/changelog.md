@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file.
 ## 2025-09-10
 - UX: Show today’s date as a live preview in date fields
 
+## 2025-09-11
+- Lib: Added watermark and margin guides options to `createEmptyPdf` utility for richer sample document generation
+
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
 - UX: Minor tuning for drag/resize performance in signing overlay

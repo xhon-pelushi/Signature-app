@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
 
 type PageSizeName = "LETTER" | "A4";
 type PageSize = PageSizeName | [number, number];
@@ -11,6 +11,8 @@ export type CreateEmptyPdfOptions = {
   subject?: string;
   author?: string;
   keywords?: string[];
+  guides?: boolean; // draw faint 1" margin guides
+  watermark?: { text: string; opacity?: number; size?: number }; // optional diagonal watermark
 };
 
 const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
@@ -42,7 +44,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"] } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -83,6 +85,36 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       font,
       color: rgb(0.3, 0.3, 0.3),
     });
+
+    if (guides) {
+      const margin = 72; // 1 inch
+      page.drawRectangle({
+        x: margin,
+        y: margin,
+        width: width - margin * 2,
+        height: height - margin * 2,
+        borderColor: rgb(0.85, 0.85, 0.85),
+        borderWidth: 0.5,
+        opacity: 0.6,
+      });
+    }
+
+    if (watermark?.text) {
+      const text = watermark.text;
+      const size = watermark.size ?? Math.min(width, height) / 5;
+      const opacity = watermark.opacity ?? 0.08;
+      const textWidth = font.widthOfTextAtSize(text, size);
+      const textHeight = size;
+      page.drawText(text, {
+        x: (width - textWidth) / 2,
+        y: (height - textHeight) / 2,
+        size,
+        font,
+        color: rgb(0.2, 0.2, 0.2),
+        rotate: degrees(45),
+        opacity,
+      });
+    }
 
     // Footer with date and page number
     if (footer) {
