@@ -21,6 +21,9 @@ All notable changes to this project will be documented in this file.
 ## 2025-09-11
 - Lib: Added watermark and margin guides options to `createEmptyPdf` utility for richer sample document generation
 
+## 2025-09-12
+- Lib: `createEmptyPdf` supports title alignment via `titleAlign` (left/center)
+
 ## 2025-09-13
 - Lib: `createEmptyPdf` supports customizable title/body colors and body text
 

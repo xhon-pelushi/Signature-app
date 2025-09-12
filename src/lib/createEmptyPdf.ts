@@ -17,6 +17,7 @@ export type CreateEmptyPdfOptions = {
   titleColor?: [number, number, number]; // 0..1 rgb
   bodyText?: string; // override default body text
   bodyColor?: [number, number, number]; // 0..1 rgb
+  titleAlign?: "left" | "center"; // alignment for the title text
 };
 
 const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
@@ -48,7 +49,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3] } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], titleAlign = "left" } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -73,8 +74,9 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     const { width, height } = page.getSize();
 
     // Title
+    const titleX = titleAlign === "center" ? (width - font.widthOfTextAtSize(title, titleSize)) / 2 : 72;
     page.drawText(title, {
-      x: 72,
+      x: titleX,
       y: height - 72 - titleSize,
       size: titleSize,
       font,
