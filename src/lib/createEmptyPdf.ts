@@ -13,6 +13,10 @@ export type CreateEmptyPdfOptions = {
   keywords?: string[];
   guides?: boolean; // draw faint 1" margin guides
   watermark?: { text: string; opacity?: number; size?: number }; // optional diagonal watermark
+  // New customization options
+  titleColor?: [number, number, number]; // 0..1 rgb
+  bodyText?: string; // override default body text
+  bodyColor?: [number, number, number]; // 0..1 rgb
 };
 
 const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
@@ -44,7 +48,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3] } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -74,16 +78,16 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       y: height - 72 - titleSize,
       size: titleSize,
       font,
-      color: rgb(0.2, 0.2, 0.2),
+      color: rgb(titleColor[0], titleColor[1], titleColor[2]),
     });
 
     // Body text
-    page.drawText("This is a sample PDF generated for testing the viewer.", {
+    page.drawText(bodyText, {
       x: 72,
       y: height - 120,
       size: 12,
       font,
-      color: rgb(0.3, 0.3, 0.3),
+      color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
     });
 
     if (guides) {
