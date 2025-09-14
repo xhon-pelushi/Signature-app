@@ -158,7 +158,7 @@ export default function PDFViewer({
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm text-gray-700">Page {pageNumber} / {numPages || "-"}</span>
+          <span className="text-sm text-gray-700" aria-live="polite">Page {pageNumber} / {numPages || "-"}</span>
           <button
             className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
             onClick={() => {
