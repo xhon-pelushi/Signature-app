@@ -112,6 +112,29 @@ src/
 - See docs/changelog.md for a list of changes.
 - See docs/troubleshooting.md for common issues and fixes.
 
+### Sample PDF generation (dev aid)
+
+Use the `createEmptyPdf` helper to quickly generate PDFs for testing:
+
+```ts
+import { createEmptyPdf } from "@/lib/createEmptyPdf";
+
+// Minimal
+const blob = await createEmptyPdf();
+
+// With options: A4, landscape, guides, watermark, and custom colors/text
+const blob2 = await createEmptyPdf("Demo", {
+	pages: 2,
+	size: "A4",
+	orientation: "landscape",
+	guides: true,
+	watermark: { text: "DRAFT" },
+	titleColor: [0.1, 0.1, 0.5],
+	bodyText: "Hello from SignatureApp",
+	bodyColor: [0.2, 0.2, 0.2],
+});
+```
+
 ## 🎨 Design System
 
 The application follows a consistent design system:

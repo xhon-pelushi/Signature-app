@@ -21,6 +21,15 @@ All notable changes to this project will be documented in this file.
 ## 2025-09-11
 - Lib: Added watermark and margin guides options to `createEmptyPdf` utility for richer sample document generation
 
+## 2025-09-13
+- Lib: `createEmptyPdf` supports customizable title/body colors and body text
+
+## 2025-09-14
+- A11y: PDF viewer page indicator now uses aria-live=polite for assistive tech
+
+## 2025-09-15
+- Docs: Document sample PDF options and usage examples in README
+
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
 - UX: Minor tuning for drag/resize performance in signing overlay
