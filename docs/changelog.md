@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-09-16
 - Lib: `createEmptyPdf` adds LEGAL, TABLOID, A5 sizes and `footerDateFormat` (iso/locale/none)
+- Lib: Support `titleFontSize`/`bodyFontSize`, optional `backgroundColor`, and `footerAlign` (left/center/right)
 
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
