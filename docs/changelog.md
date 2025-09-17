@@ -37,6 +37,12 @@ All notable changes to this project will be documented in this file.
 - Lib: `createEmptyPdf` adds LEGAL, TABLOID, A5 sizes and `footerDateFormat` (iso/locale/none)
 - Lib: Support `titleFontSize`/`bodyFontSize`, optional `backgroundColor`, and `footerAlign` (left/center/right)
 
+## 2025-09-17
+- Lib: `createEmptyPdf` supports configurable `margins` (uniform or per-side) and guides now reflect margins
+
+## 2025-09-18
+- Lib: Add `ruleOfThirds` overlay option to draw faint thirds grid (for layout testing)
+
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
 - UX: Minor tuning for drag/resize performance in signing overlay
