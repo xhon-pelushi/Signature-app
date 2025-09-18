@@ -27,6 +27,7 @@ export type CreateEmptyPdfOptions = {
   // Layout
   margins?: number | { top: number; right: number; bottom: number; left: number }; // points
   ruleOfThirds?: boolean; // draw faint thirds grid overlay inside margins
+  titleUnderline?: boolean; // draw a faint underline under the title
 };
 
 const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
@@ -106,6 +107,12 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       font,
       color: rgb(titleColor[0], titleColor[1], titleColor[2]),
     });
+    if (options.titleUnderline) {
+      const ux = titleAlign === "center" ? (width - font.widthOfTextAtSize(title, titleSize)) / 2 : m.left;
+      const uw = font.widthOfTextAtSize(title, titleSize);
+      const uy = height - m.top - titleSize - 4;
+      page.drawLine({ start: { x: ux, y: uy }, end: { x: ux + uw, y: uy }, thickness: 0.75, color: rgb(0.7, 0.7, 0.7), opacity: 0.8 });
+    }
 
     // Body text
     page.drawText(bodyText, {
