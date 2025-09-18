@@ -43,6 +43,7 @@ All notable changes to this project will be documented in this file.
 ## 2025-09-18
 - Lib: Add `ruleOfThirds` overlay option to draw faint thirds grid (for layout testing)
  - Lib: Add `titleUnderline` option to draw an underline under the title
+ - Lib: Add `subtitle*` options (text/color/size/align) and `pageBorder` (color/width/inset)
 
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata

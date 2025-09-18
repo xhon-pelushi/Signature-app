@@ -28,6 +28,12 @@ export type CreateEmptyPdfOptions = {
   margins?: number | { top: number; right: number; bottom: number; left: number }; // points
   ruleOfThirds?: boolean; // draw faint thirds grid overlay inside margins
   titleUnderline?: boolean; // draw a faint underline under the title
+  // Subtitle and border
+  subtitleText?: string;
+  subtitleColor?: [number, number, number];
+  subtitleFontSize?: number; // default 14
+  subtitleAlign?: "left" | "center";
+  pageBorder?: { color?: [number, number, number]; width?: number; inset?: number };
 };
 
 const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
@@ -62,7 +68,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], titleAlign = "left", footerDateFormat = "iso", titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", margins } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], titleAlign = "left", footerDateFormat = "iso", titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -90,6 +96,18 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     if (backgroundColor) {
       page.drawRectangle({ x: 0, y: 0, width, height, color: rgb(backgroundColor[0], backgroundColor[1], backgroundColor[2]) });
     }
+    // Optional page border
+    if (pageBorder) {
+      const inset = pageBorder.inset ?? 0;
+      page.drawRectangle({
+        x: inset,
+        y: inset,
+        width: width - inset * 2,
+        height: height - inset * 2,
+        borderColor: rgb(...(pageBorder.color ?? [0.8, 0.8, 0.8])),
+        borderWidth: pageBorder.width ?? 1,
+      });
+    }
 
     // Resolve margins (default 1")
     const m = typeof margins === "number"
@@ -114,10 +132,24 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       page.drawLine({ start: { x: ux, y: uy }, end: { x: ux + uw, y: uy }, thickness: 0.75, color: rgb(0.7, 0.7, 0.7), opacity: 0.8 });
     }
 
+    // Optional subtitle
+    let bodyY = height - m.top - titleSize - 36;
+    if (subtitleText) {
+      const subX = subtitleAlign === "center" ? (width - font.widthOfTextAtSize(subtitleText, subtitleFontSize)) / 2 : m.left;
+      const subY = height - m.top - titleSize - 18;
+      page.drawText(subtitleText, {
+        x: subX,
+        y: subY,
+        size: subtitleFontSize,
+        font,
+        color: rgb(subtitleColor[0], subtitleColor[1], subtitleColor[2]),
+      });
+      bodyY = subY - 24;
+    }
     // Body text
     page.drawText(bodyText, {
       x: m.left,
-      y: height - m.top - titleSize - 36,
+      y: bodyY,
       size: bodyFontSize,
       font,
       color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
