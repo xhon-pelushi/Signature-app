@@ -17,6 +17,8 @@ export type CreateEmptyPdfOptions = {
   titleColor?: [number, number, number]; // 0..1 rgb
   bodyText?: string; // override default body text
   bodyColor?: [number, number, number]; // 0..1 rgb
+  bodyLineHeight?: number; // multiplier for line height when wrapping body text
+  bodyAlign?: "left" | "center"; // alignment for wrapped body text
   titleAlign?: "left" | "center"; // alignment for the title text
   footerDateFormat?: "iso" | "locale" | "none"; // control footer date format
   // Typography and page appearance
@@ -33,7 +35,7 @@ export type CreateEmptyPdfOptions = {
   subtitleColor?: [number, number, number];
   subtitleFontSize?: number; // default 14
   subtitleAlign?: "left" | "center";
-  pageBorder?: { color?: [number, number, number]; width?: number; inset?: number };
+  pageBorder?: { color?: [number, number, number]; width?: number; inset?: number; dashed?: boolean; dashArray?: number[] };
 };
 
 const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
@@ -68,7 +70,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], titleAlign = "left", footerDateFormat = "iso", titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", titleAlign = "left", footerDateFormat = "iso", titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -99,14 +101,42 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     // Optional page border
     if (pageBorder) {
       const inset = pageBorder.inset ?? 0;
-      page.drawRectangle({
+      const rect = {
         x: inset,
         y: inset,
         width: width - inset * 2,
         height: height - inset * 2,
         borderColor: rgb(...(pageBorder.color ?? [0.8, 0.8, 0.8])),
         borderWidth: pageBorder.width ?? 1,
-      });
+      } as const;
+      if (pageBorder.dashed || (pageBorder.dashArray && pageBorder.dashArray.length > 0)) {
+        const dash = pageBorder.dashArray ?? [6, 4];
+        // Draw dashed rectangle manually using four lines
+        const x0 = rect.x, y0 = rect.y, x1 = rect.x + rect.width, y1 = rect.y + rect.height;
+        const color = rect.borderColor; const thickness = rect.borderWidth;
+        const drawDashedLine = (sx: number, sy: number, ex: number, ey: number) => {
+          const dx = ex - sx; const dy = ey - sy; const len = Math.hypot(dx, dy);
+          if (len === 0) return;
+          const ux = dx / len; const uy = dy / len;
+          let dist = 0; let draw = true; let idx = 0; let x = sx; let y = sy;
+          while (dist < len) {
+            const seg = dash[idx % dash.length];
+            const nx = x + ux * seg; const ny = y + uy * seg;
+            const clamped = Math.min(seg, len - dist);
+            const cx = x + ux * clamped; const cy = y + uy * clamped;
+            if (draw) {
+              page.drawLine({ start: { x, y }, end: { x: cx, y: cy }, thickness, color });
+            }
+            x = nx; y = ny; dist += seg; idx++; draw = !draw;
+          }
+        };
+        drawDashedLine(x0, y0, x1, y0); // bottom
+        drawDashedLine(x1, y0, x1, y1); // right
+        drawDashedLine(x1, y1, x0, y1); // top
+        drawDashedLine(x0, y1, x0, y0); // left
+      } else {
+        page.drawRectangle(rect);
+      }
     }
 
     // Resolve margins (default 1")
@@ -146,14 +176,59 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       });
       bodyY = subY - 24;
     }
-    // Body text
-    page.drawText(bodyText, {
-      x: m.left,
-      y: bodyY,
-      size: bodyFontSize,
-      font,
-      color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
-    });
+    // Body text with simple word-wrapping
+    const wrapText = (text: string, maxWidth: number): string[] => {
+      const lines: string[] = [];
+      const paragraphs = text.split(/\n/);
+      for (const para of paragraphs) {
+        const words = para.split(/\s+/);
+        let line = "";
+        for (const word of words) {
+          const test = line ? line + " " + word : word;
+          const w = font.widthOfTextAtSize(test, bodyFontSize);
+          if (w <= maxWidth) {
+            line = test;
+          } else {
+            if (line) lines.push(line);
+            // If a single word is longer than maxWidth, hard-break it
+            if (font.widthOfTextAtSize(word, bodyFontSize) > maxWidth) {
+              let chunk = "";
+              for (const ch of word) {
+                const testChunk = chunk + ch;
+                if (font.widthOfTextAtSize(testChunk, bodyFontSize) <= maxWidth) {
+                  chunk = testChunk;
+                } else {
+                  if (chunk) lines.push(chunk);
+                  chunk = ch;
+                }
+              }
+              line = chunk;
+            } else {
+              line = word;
+            }
+          }
+        }
+        if (line) lines.push(line);
+      }
+      return lines;
+    };
+
+    const bodyLines = wrapText(bodyText, Math.max(0, contentWidth));
+    let currentY = bodyY;
+    const lineStep = bodyFontSize * bodyLineHeight;
+    for (const line of bodyLines) {
+      if (currentY < m.bottom + lineStep) break; // stop drawing if we run out of space
+      const lineWidth = font.widthOfTextAtSize(line, bodyFontSize);
+      const lineX = bodyAlign === "center" ? m.left + Math.max(0, (contentWidth - lineWidth) / 2) : m.left;
+      page.drawText(line, {
+        x: lineX,
+        y: currentY,
+        size: bodyFontSize,
+        font,
+        color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
+      });
+      currentY -= lineStep;
+    }
 
     if (guides) {
       page.drawRectangle({

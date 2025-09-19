@@ -45,6 +45,10 @@ All notable changes to this project will be documented in this file.
  - Lib: Add `titleUnderline` option to draw an underline under the title
  - Lib: Add `subtitle*` options (text/color/size/align) and `pageBorder` (color/width/inset)
 
+## 2025-09-19
+- Lib: `createEmptyPdf` supports `bodyLineHeight` and `bodyAlign` for wrapped body text
+- Lib: `pageBorder` supports dashed borders via `{ dashed: true }` or custom `dashArray`
+
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
 - UX: Minor tuning for drag/resize performance in signing overlay
