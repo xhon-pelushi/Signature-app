@@ -48,6 +48,7 @@ All notable changes to this project will be documented in this file.
 ## 2025-09-19
 - Lib: `createEmptyPdf` supports `bodyLineHeight` and `bodyAlign` for wrapped body text
 - Lib: `pageBorder` supports dashed borders via `{ dashed: true }` or custom `dashArray`
+ - Lib: Add `pageNumbers` option with position (top/bottom), align (left/center/right), size, color, and tokenized `format`
 
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata

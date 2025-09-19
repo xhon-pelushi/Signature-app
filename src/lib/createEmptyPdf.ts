@@ -36,6 +36,15 @@ export type CreateEmptyPdfOptions = {
   subtitleFontSize?: number; // default 14
   subtitleAlign?: "left" | "center";
   pageBorder?: { color?: [number, number, number]; width?: number; inset?: number; dashed?: boolean; dashArray?: number[] };
+  // Page numbers
+  pageNumbers?: {
+    position?: "top" | "bottom"; // default bottom
+    align?: "left" | "center" | "right"; // default right
+    size?: number; // default 10
+    color?: [number, number, number]; // default [0.5,0.5,0.5]
+    format?: string; // default "Page {page} of {pages}"
+    enabled?: boolean; // default true if provided
+  };
 };
 
 const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
@@ -70,7 +79,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", titleAlign = "left", footerDateFormat = "iso", titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", titleAlign = "left", footerDateFormat = "iso", titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, pageNumbers } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -292,6 +301,33 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
         size: footerSize,
         font,
         color: rgb(0.5, 0.5, 0.5),
+      });
+    }
+
+    // Optional page numbers separate from footer
+    if (pageNumbers && (pageNumbers.enabled ?? true)) {
+      const fmt = pageNumbers.format ?? "Page {page} of {pages}";
+      const text = fmt.replace("{page}", String(i + 1)).replace("{pages}", String(pages));
+      const size = pageNumbers.size ?? 10;
+      const colorArr = pageNumbers.color ?? [0.5, 0.5, 0.5];
+      const align = pageNumbers.align ?? "right";
+      const position = pageNumbers.position ?? "bottom";
+      const textWidth = font.widthOfTextAtSize(text, size);
+      let x = m.left;
+      if (align === "center") {
+        x = (width - textWidth) / 2;
+      } else if (align === "right") {
+        x = width - m.right - textWidth;
+      }
+      const topY = height - Math.max(24, m.top / 2);
+      const bottomY = Math.max(24, m.bottom / 2);
+      const y = position === "top" ? topY : bottomY;
+      page.drawText(text, {
+        x,
+        y,
+        size,
+        font,
+        color: rgb(colorArr[0], colorArr[1], colorArr[2]),
       });
     }
   }
