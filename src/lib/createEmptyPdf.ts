@@ -42,6 +42,9 @@ export type CreateEmptyPdfOptions = {
   pageBorder?: { color?: [number, number, number]; width?: number; inset?: number; dashed?: boolean; dashArray?: number[] };
   // Header rule under title/subtitle
   headerRule?: { color?: [number, number, number]; width?: number; offset?: number; inset?: number };
+  // Text transforms for header texts
+  titleTransform?: "uppercase" | "lowercase" | "titlecase" | "none";
+  subtitleTransform?: "uppercase" | "lowercase" | "titlecase" | "none";
   // Page numbers
   pageNumbers?: {
     position?: "top" | "bottom"; // default bottom
@@ -85,7 +88,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, pageNumbers } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -162,8 +165,21 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
   const contentHeight = Math.max(0, height - m.top - m.bottom);
 
     // Title
-    const titleX = titleAlign === "center" ? (width - font.widthOfTextAtSize(title, titleSize)) / 2 : m.left;
-    page.drawText(title, {
+    const transformText = (t: string, kind: "uppercase" | "lowercase" | "titlecase" | "none") => {
+      switch (kind) {
+        case "uppercase":
+          return t.toUpperCase();
+        case "lowercase":
+          return t.toLowerCase();
+        case "titlecase":
+          return t.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+        default:
+          return t;
+      }
+    };
+    const titleText = transformText(title, titleTransform);
+    const titleX = titleAlign === "center" ? (width - font.widthOfTextAtSize(titleText, titleSize)) / 2 : m.left;
+    page.drawText(titleText, {
       x: titleX,
       y: height - m.top - titleSize,
       size: titleSize,
@@ -171,8 +187,8 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       color: rgb(titleColor[0], titleColor[1], titleColor[2]),
     });
     if (options.titleUnderline) {
-      const ux = titleAlign === "center" ? (width - font.widthOfTextAtSize(title, titleSize)) / 2 : m.left;
-      const uw = font.widthOfTextAtSize(title, titleSize);
+      const ux = titleAlign === "center" ? (width - font.widthOfTextAtSize(titleText, titleSize)) / 2 : m.left;
+      const uw = font.widthOfTextAtSize(titleText, titleSize);
       const uy = height - m.top - titleSize - 4;
       page.drawLine({ start: { x: ux, y: uy }, end: { x: ux + uw, y: uy }, thickness: 0.75, color: rgb(0.7, 0.7, 0.7), opacity: 0.8 });
     }
@@ -180,9 +196,10 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     // Optional subtitle
     let bodyY = height - m.top - titleSize - 36;
     if (subtitleText) {
-      const subX = subtitleAlign === "center" ? (width - font.widthOfTextAtSize(subtitleText, subtitleFontSize)) / 2 : m.left;
+      const subtitleTextTx = transformText(subtitleText, subtitleTransform);
+      const subX = subtitleAlign === "center" ? (width - font.widthOfTextAtSize(subtitleTextTx, subtitleFontSize)) / 2 : m.left;
       const subY = height - m.top - titleSize - 18;
-      page.drawText(subtitleText, {
+      page.drawText(subtitleTextTx, {
         x: subX,
         y: subY,
         size: subtitleFontSize,
