@@ -19,6 +19,7 @@ export type CreateEmptyPdfOptions = {
   bodyColor?: [number, number, number]; // 0..1 rgb
   bodyLineHeight?: number; // multiplier for line height when wrapping body text
   bodyAlign?: "left" | "center"; // alignment for wrapped body text
+  bodyMaxLines?: number; // maximum number of wrapped body lines to render (per page)
   titleAlign?: "left" | "center"; // alignment for the title text
   footerDateFormat?: "iso" | "locale" | "none"; // control footer date format
   footerFormat?: string; // tokenized format for footer text: {app}, {title}, {date}, {page}, {pages}, {sep}
@@ -27,6 +28,7 @@ export type CreateEmptyPdfOptions = {
   bodyFontSize?: number; // default 12
   backgroundColor?: [number, number, number]; // 0..1 rgb, optional
   footerAlign?: "left" | "center" | "right"; // where to place footer text
+  footerColor?: [number, number, number]; // footer text color (default gray)
   // Layout
   margins?: number | { top: number; right: number; bottom: number; left: number }; // points
   ruleOfThirds?: boolean; // draw faint thirds grid overlay inside margins
@@ -80,7 +82,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, pageNumbers } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, pageNumbers } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -226,8 +228,10 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     const bodyLines = wrapText(bodyText, Math.max(0, contentWidth));
     let currentY = bodyY;
     const lineStep = bodyFontSize * bodyLineHeight;
+    let linesDrawn = 0;
     for (const line of bodyLines) {
       if (currentY < m.bottom + lineStep) break; // stop drawing if we run out of space
+      if (typeof bodyMaxLines === "number" && linesDrawn >= bodyMaxLines) break; // respect max lines cap
       const lineWidth = font.widthOfTextAtSize(line, bodyFontSize);
       const lineX = bodyAlign === "center" ? m.left + Math.max(0, (contentWidth - lineWidth) / 2) : m.left;
       page.drawText(line, {
@@ -238,6 +242,7 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
         color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
       });
       currentY -= lineStep;
+      linesDrawn++;
     }
 
     if (guides) {
@@ -311,7 +316,7 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
         y: Math.max(24, m.bottom / 2),
         size: footerSize,
         font,
-        color: rgb(0.5, 0.5, 0.5),
+        color: rgb(footerColor[0], footerColor[1], footerColor[2]),
       });
     }
 
