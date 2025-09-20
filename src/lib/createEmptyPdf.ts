@@ -33,6 +33,7 @@ export type CreateEmptyPdfOptions = {
   margins?: number | { top: number; right: number; bottom: number; left: number }; // points
   ruleOfThirds?: boolean; // draw faint thirds grid overlay inside margins
   titleUnderline?: boolean; // draw a faint underline under the title
+  contentPadding?: number; // inner padding inside content box for body text
   // Subtitle and border
   subtitleText?: string;
   subtitleColor?: [number, number, number];
@@ -84,7 +85,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, pageNumbers } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, pageNumbers } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -157,8 +158,8 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     const m = typeof margins === "number"
       ? { top: margins, right: margins, bottom: margins, left: margins }
       : margins ?? { top: 72, right: 72, bottom: 72, left: 72 };
-    const contentWidth = Math.max(0, width - m.left - m.right);
-    const contentHeight = Math.max(0, height - m.top - m.bottom);
+  const contentWidth = Math.max(0, width - m.left - m.right);
+  const contentHeight = Math.max(0, height - m.top - m.bottom);
 
     // Title
     const titleX = titleAlign === "center" ? (width - font.widthOfTextAtSize(title, titleSize)) / 2 : m.left;
@@ -243,7 +244,10 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       return lines;
     };
 
-    const bodyLines = wrapText(bodyText, Math.max(0, contentWidth));
+    const innerLeft = m.left + contentPadding;
+    const innerRight = width - m.right - contentPadding;
+    const innerWidth = Math.max(0, innerRight - innerLeft);
+    const bodyLines = wrapText(bodyText, innerWidth);
     let currentY = bodyY;
     const lineStep = bodyFontSize * bodyLineHeight;
     let linesDrawn = 0;
@@ -251,7 +255,7 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       if (currentY < m.bottom + lineStep) break; // stop drawing if we run out of space
       if (typeof bodyMaxLines === "number" && linesDrawn >= bodyMaxLines) break; // respect max lines cap
       const lineWidth = font.widthOfTextAtSize(line, bodyFontSize);
-      const lineX = bodyAlign === "center" ? m.left + Math.max(0, (contentWidth - lineWidth) / 2) : m.left;
+      const lineX = bodyAlign === "center" ? innerLeft + Math.max(0, (innerWidth - lineWidth) / 2) : innerLeft;
       page.drawText(line, {
         x: lineX,
         y: currentY,
