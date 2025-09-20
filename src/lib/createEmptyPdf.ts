@@ -39,6 +39,8 @@ export type CreateEmptyPdfOptions = {
   subtitleFontSize?: number; // default 14
   subtitleAlign?: "left" | "center";
   pageBorder?: { color?: [number, number, number]; width?: number; inset?: number; dashed?: boolean; dashArray?: number[] };
+  // Header rule under title/subtitle
+  headerRule?: { color?: [number, number, number]; width?: number; offset?: number; inset?: number };
   // Page numbers
   pageNumbers?: {
     position?: "top" | "bottom"; // default bottom
@@ -82,7 +84,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, pageNumbers } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, pageNumbers } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -188,6 +190,22 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       });
       bodyY = subY - 24;
     }
+    // Optional header rule (drawn relative to body start)
+    if (headerRule) {
+      const inset = headerRule.inset ?? 0;
+      const ruleY = bodyY + (headerRule.offset ?? 8);
+      const x1 = m.left + inset;
+      const x2 = width - m.right - inset;
+      page.drawLine({
+        start: { x: x1, y: ruleY },
+        end: { x: x2, y: ruleY },
+        thickness: headerRule.width ?? 0.75,
+        color: rgb(...(headerRule.color ?? [0.85, 0.85, 0.85])),
+      });
+      // Add a bit more space before body if rule is present
+      bodyY = ruleY - 8;
+    }
+
     // Body text with simple word-wrapping
     const wrapText = (text: string, maxWidth: number): string[] => {
       const lines: string[] = [];
