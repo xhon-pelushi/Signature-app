@@ -50,6 +50,9 @@ All notable changes to this project will be documented in this file.
 - Lib: `pageBorder` supports dashed borders via `{ dashed: true }` or custom `dashArray`
  - Lib: Add `pageNumbers` option with position (top/bottom), align (left/center/right), size, color, and tokenized `format`
 
+## 2025-09-20
+- Lib: `createEmptyPdf` adds `footerFormat` for customizable footer text with tokens `{app}`, `{title}`, `{date}`, `{page}`, `{pages}`, and `{sep}`
+
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
 - UX: Minor tuning for drag/resize performance in signing overlay
