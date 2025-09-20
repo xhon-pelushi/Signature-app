@@ -54,6 +54,9 @@ All notable changes to this project will be documented in this file.
 - Lib: `createEmptyPdf` adds `footerFormat` for customizable footer text with tokens `{app}`, `{title}`, `{date}`, `{page}`, `{pages}`, and `{sep}`
  - Lib: Add `bodyMaxLines` to cap wrapped body lines per page
  - Lib: Add `footerColor` to customize footer text color
+ - Lib: Add `headerRule` to draw a subtle rule under the header
+ - Lib: Add `contentPadding` to introduce an inner text gutter
+ - Lib: Add `titleTransform`/`subtitleTransform` (uppercase/lowercase/titlecase)
 
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
