@@ -58,6 +58,18 @@ All notable changes to this project will be documented in this file.
  - Lib: Add `contentPadding` to introduce an inner text gutter
  - Lib: Add `titleTransform`/`subtitleTransform` (uppercase/lowercase/titlecase)
 
+## 2025-09-21
+- Lib: Add `bodyIndentFirstLine` to indent the first line of each paragraph
+
+## 2025-09-22
+- Lib: Add `paragraphSpacing` for extra vertical space after paragraphs
+
+## 2025-09-23
+- Lib: Add `suppressFooterOnFirstPage` and `suppressPageNumbersOnFirstPage` to omit footer/page numbers on first page
+
+## 2025-09-24
+- Lib: Add `watermarkAngle` to control watermark rotation (degrees)
+
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
 - UX: Minor tuning for drag/resize performance in signing overlay

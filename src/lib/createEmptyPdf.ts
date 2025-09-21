@@ -13,6 +13,8 @@ export type CreateEmptyPdfOptions = {
   keywords?: string[];
   guides?: boolean; // draw faint 1" margin guides
   watermark?: { text: string; opacity?: number; size?: number }; // optional diagonal watermark
+  // Extended watermark angle control (degrees)
+  watermarkAngle?: number; // rotation angle in degrees for watermark text (default 45)
   // New customization options
   titleColor?: [number, number, number]; // 0..1 rgb
   bodyText?: string; // override default body text
@@ -20,6 +22,8 @@ export type CreateEmptyPdfOptions = {
   bodyLineHeight?: number; // multiplier for line height when wrapping body text
   bodyAlign?: "left" | "center"; // alignment for wrapped body text
   bodyMaxLines?: number; // maximum number of wrapped body lines to render (per page)
+  bodyIndentFirstLine?: number; // points to indent the first line of each paragraph
+  paragraphSpacing?: number; // extra vertical points after each paragraph (multiplicative of bodyLineHeight if < 10?)
   titleAlign?: "left" | "center"; // alignment for the title text
   footerDateFormat?: "iso" | "locale" | "none"; // control footer date format
   footerFormat?: string; // tokenized format for footer text: {app}, {title}, {date}, {page}, {pages}, {sep}
@@ -54,6 +58,8 @@ export type CreateEmptyPdfOptions = {
     format?: string; // default "Page {page} of {pages}"
     enabled?: boolean; // default true if provided
   };
+  suppressFooterOnFirstPage?: boolean; // don't draw footer on page index 0
+  suppressPageNumbersOnFirstPage?: boolean; // don't draw pageNumbers for first page
 };
 
 const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
@@ -88,7 +94,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -224,64 +230,78 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
       bodyY = ruleY - 8;
     }
 
-    // Body text with simple word-wrapping
-    const wrapText = (text: string, maxWidth: number): string[] => {
-      const lines: string[] = [];
-      const paragraphs = text.split(/\n/);
-      for (const para of paragraphs) {
-        const words = para.split(/\s+/);
-        let line = "";
-        for (const word of words) {
-          const test = line ? line + " " + word : word;
-          const w = font.widthOfTextAtSize(test, bodyFontSize);
-          if (w <= maxWidth) {
-            line = test;
-          } else {
-            if (line) lines.push(line);
-            // If a single word is longer than maxWidth, hard-break it
-            if (font.widthOfTextAtSize(word, bodyFontSize) > maxWidth) {
-              let chunk = "";
-              for (const ch of word) {
-                const testChunk = chunk + ch;
-                if (font.widthOfTextAtSize(testChunk, bodyFontSize) <= maxWidth) {
-                  chunk = testChunk;
-                } else {
-                  if (chunk) lines.push(chunk);
-                  chunk = ch;
-                }
+    // Body text with paragraph-aware wrapping
+    const wrapParagraph = (para: string, maxWidth: number): string[] => {
+      const out: string[] = [];
+      const words = para.split(/\s+/);
+      let line = "";
+      for (const word of words) {
+        const candidate = line ? line + " " + word : word;
+        const candidateWidth = font.widthOfTextAtSize(candidate, bodyFontSize);
+        if (candidateWidth <= maxWidth) {
+          line = candidate;
+        } else {
+          if (line) out.push(line);
+          // Hard-break overlong word
+          if (font.widthOfTextAtSize(word, bodyFontSize) > maxWidth) {
+            let chunk = "";
+            for (const ch of word) {
+              const testChunk = chunk + ch;
+              if (font.widthOfTextAtSize(testChunk, bodyFontSize) <= maxWidth) {
+                chunk = testChunk;
+              } else {
+                if (chunk) out.push(chunk);
+                chunk = ch;
               }
-              line = chunk;
-            } else {
-              line = word;
             }
+            line = chunk;
+          } else {
+            line = word;
           }
         }
-        if (line) lines.push(line);
       }
-      return lines;
+      if (line) out.push(line);
+      return out;
     };
 
     const innerLeft = m.left + contentPadding;
     const innerRight = width - m.right - contentPadding;
     const innerWidth = Math.max(0, innerRight - innerLeft);
-    const bodyLines = wrapText(bodyText, innerWidth);
+    const paragraphs = bodyText.split(/\n/);
+    const bodyLines: { text: string; first: boolean }[] = [];
+    for (const p of paragraphs) {
+      const lines = wrapParagraph(p, innerWidth - (bodyIndentFirstLine ?? 0));
+      lines.forEach((ln, idx) => bodyLines.push({ text: ln, first: idx === 0 }));
+      // add blank marker for paragraph spacing if paragraphSpacing provided
+      if (paragraphSpacing && paragraphSpacing > 0) {
+        bodyLines.push({ text: "", first: false });
+      }
+    }
     let currentY = bodyY;
     const lineStep = bodyFontSize * bodyLineHeight;
     let linesDrawn = 0;
-    for (const line of bodyLines) {
+    for (const lineObj of bodyLines) {
+      const line = lineObj.text;
       if (currentY < m.bottom + lineStep) break; // stop drawing if we run out of space
       if (typeof bodyMaxLines === "number" && linesDrawn >= bodyMaxLines) break; // respect max lines cap
-      const lineWidth = font.widthOfTextAtSize(line, bodyFontSize);
-      const lineX = bodyAlign === "center" ? innerLeft + Math.max(0, (innerWidth - lineWidth) / 2) : innerLeft;
-      page.drawText(line, {
-        x: lineX,
-        y: currentY,
-        size: bodyFontSize,
-        font,
-        color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
-      });
-      currentY -= lineStep;
-      linesDrawn++;
+      if (line.trim().length === 0) {
+        // paragraph spacing
+        currentY -= (paragraphSpacing || 0);
+      } else {
+        const lineWidth = font.widthOfTextAtSize(line, bodyFontSize);
+        const indentX = lineObj.first && bodyIndentFirstLine ? bodyIndentFirstLine : 0;
+        const availableWidth = innerWidth - (lineObj.first && bodyIndentFirstLine ? bodyIndentFirstLine : 0);
+        const lineX = bodyAlign === "center" ? innerLeft + indentX + Math.max(0, (availableWidth - lineWidth) / 2) : innerLeft + indentX;
+        page.drawText(line, {
+          x: lineX,
+          y: currentY,
+          size: bodyFontSize,
+          font,
+          color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
+        });
+        currentY -= lineStep;
+        linesDrawn++;
+      }
     }
 
     if (guides) {
@@ -323,13 +343,13 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
         size,
         font,
         color: rgb(0.2, 0.2, 0.2),
-        rotate: degrees(45),
+        rotate: degrees(watermarkAngle),
         opacity,
       });
     }
 
     // Footer with date and page number
-    if (footer) {
+  if (footer && !(suppressFooterOnFirstPage && i === 0)) {
       const now = new Date();
       const date = footerDateFormat === "none" ? "" : footerDateFormat === "locale" ? now.toLocaleDateString() : now.toISOString().slice(0, 10);
       const appName = "SignatureApp";
@@ -360,7 +380,7 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     }
 
     // Optional page numbers separate from footer
-    if (pageNumbers && (pageNumbers.enabled ?? true)) {
+  if (pageNumbers && (pageNumbers.enabled ?? true) && !(suppressPageNumbersOnFirstPage && i === 0)) {
       const fmt = pageNumbers.format ?? "Page {page} of {pages}";
       const text = fmt.replace("{page}", String(i + 1)).replace("{pages}", String(pages));
       const size = pageNumbers.size ?? 10;
