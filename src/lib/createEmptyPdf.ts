@@ -27,6 +27,7 @@ export type CreateEmptyPdfOptions = {
   hyphenateLongWords?: boolean; // attempt naive hyphenation when breaking long words
   ellipsisOverflow?: boolean; // append an ellipsis character if body text is truncated by space or line cap
   debugBoundingBoxes?: boolean; // draw translucent rectangles behind each rendered body line for layout debugging
+  bodyLineNumbers?: boolean | { color?: [number, number, number]; align?: 'left' | 'right'; gutter?: number; fontSize?: number }; // show line numbers for body lines (debug/reading)
   titleAlign?: "left" | "center"; // alignment for the title text
   footerDateFormat?: "iso" | "locale" | "none"; // control footer date format
   footerFormat?: string; // tokenized format for footer text: {app}, {title}, {date}, {page}, {pages}, {sep}
@@ -97,7 +98,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, hyphenateLongWords, ellipsisOverflow, debugBoundingBoxes, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, hyphenateLongWords, ellipsisOverflow, debugBoundingBoxes, bodyLineNumbers, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -299,6 +300,7 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     const lineStep = bodyFontSize * bodyLineHeight;
     let linesDrawn = 0;
     let lastDrawnY = currentY;
+    let displayLineIndex = 0;
     for (const lineObj of bodyLines) {
       const line = lineObj.text;
       if (currentY < m.bottom + lineStep) break; // stop drawing if we run out of space
@@ -311,6 +313,24 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
         const indentX = lineObj.first && bodyIndentFirstLine ? bodyIndentFirstLine : 0;
         const availableWidth = innerWidth - (lineObj.first && bodyIndentFirstLine ? bodyIndentFirstLine : 0);
         const lineX = bodyAlign === "center" ? innerLeft + indentX + Math.max(0, (availableWidth - lineWidth) / 2) : innerLeft + indentX;
+        if (bodyLineNumbers) {
+          const lnCfg = typeof bodyLineNumbers === 'object' ? bodyLineNumbers : {};
+          const lnColor = lnCfg.color ?? [0.6,0.6,0.6];
+          const lnAlign = lnCfg.align ?? 'left';
+          const gutter = lnCfg.gutter ?? 8;
+          const lnFontSize = lnCfg.fontSize ?? Math.max(8, bodyFontSize * 0.8);
+          const numText = String(displayLineIndex + 1);
+          const numWidth = font.widthOfTextAtSize(numText, lnFontSize);
+          const numX = lnAlign === 'left' ? innerLeft - gutter - numWidth : innerRight + gutter;
+          page.drawText(numText, {
+            x: numX,
+            y: currentY,
+            size: lnFontSize,
+            font,
+            color: rgb(lnColor[0], lnColor[1], lnColor[2]),
+          });
+          displayLineIndex++;
+        }
         if (debugBoundingBoxes) {
           const boxHeight = bodyFontSize * bodyLineHeight;
             page.drawRectangle({

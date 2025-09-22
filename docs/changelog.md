@@ -63,6 +63,7 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-09-22
 - Lib: Add `paragraphSpacing` for extra vertical space after paragraphs
+- Lib: Add `bodyLineNumbers` option to display line numbers (left/right) for wrapped body lines (debug/reading aid)
 
 ## 2025-09-23
 - Lib: Add `suppressFooterOnFirstPage` and `suppressPageNumbersOnFirstPage` to omit footer/page numbers on first page
