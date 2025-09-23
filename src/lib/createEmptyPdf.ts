@@ -27,6 +27,7 @@ export type CreateEmptyPdfOptions = {
   hyphenateLongWords?: boolean; // attempt naive hyphenation when breaking long words
   ellipsisOverflow?: boolean; // append an ellipsis character if body text is truncated by space or line cap
   debugBoundingBoxes?: boolean; // draw translucent rectangles behind each rendered body line for layout debugging
+  bodyMaxParagraphs?: number; // cap the number of paragraphs processed from bodyText
   bodyLineNumbers?: boolean | { color?: [number, number, number]; align?: 'left' | 'right'; gutter?: number; fontSize?: number }; // show line numbers for body lines (debug/reading)
   titleAlign?: "left" | "center"; // alignment for the title text
   footerDateFormat?: "iso" | "locale" | "none"; // control footer date format
@@ -98,7 +99,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, hyphenateLongWords, ellipsisOverflow, debugBoundingBoxes, bodyLineNumbers, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, hyphenateLongWords, ellipsisOverflow, debugBoundingBoxes, bodyLineNumbers, bodyMaxParagraphs, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -286,7 +287,10 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     const innerLeft = m.left + contentPadding;
     const innerRight = width - m.right - contentPadding;
     const innerWidth = Math.max(0, innerRight - innerLeft);
-    const paragraphs = bodyText.split(/\n/);
+    let paragraphs = bodyText.split(/\n/);
+    if (typeof bodyMaxParagraphs === 'number' && bodyMaxParagraphs >= 0) {
+      paragraphs = paragraphs.slice(0, bodyMaxParagraphs);
+    }
     const bodyLines: { text: string; first: boolean }[] = [];
     for (const p of paragraphs) {
       const lines = wrapParagraph(p, innerWidth - (bodyIndentFirstLine ?? 0));

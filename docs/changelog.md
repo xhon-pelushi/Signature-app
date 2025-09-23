@@ -67,6 +67,7 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-09-23
 - Lib: Add `suppressFooterOnFirstPage` and `suppressPageNumbersOnFirstPage` to omit footer/page numbers on first page
+- Lib: Add `bodyMaxParagraphs` to cap the number of paragraphs processed from `bodyText`
 
 ## 2025-09-24
 - Lib: Add `watermarkAngle` to control watermark rotation (degrees)
