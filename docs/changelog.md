@@ -69,6 +69,9 @@ All notable changes to this project will be documented in this file.
 
 ## 2025-09-24
 - Lib: Add `watermarkAngle` to control watermark rotation (degrees)
+- Lib: Add `hyphenateLongWords` to perform naive hyphenation when breaking overlong words in body text
+- Lib: Add `ellipsisOverflow` to append an ellipsis when body text is truncated by space or max line constraints
+- Lib: Add `debugBoundingBoxes` to visualize body line rectangles for layout debugging
 
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata

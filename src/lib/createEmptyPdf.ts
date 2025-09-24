@@ -24,6 +24,9 @@ export type CreateEmptyPdfOptions = {
   bodyMaxLines?: number; // maximum number of wrapped body lines to render (per page)
   bodyIndentFirstLine?: number; // points to indent the first line of each paragraph
   paragraphSpacing?: number; // extra vertical points after each paragraph (multiplicative of bodyLineHeight if < 10?)
+  hyphenateLongWords?: boolean; // attempt naive hyphenation when breaking long words
+  ellipsisOverflow?: boolean; // append an ellipsis character if body text is truncated by space or line cap
+  debugBoundingBoxes?: boolean; // draw translucent rectangles behind each rendered body line for layout debugging
   titleAlign?: "left" | "center"; // alignment for the title text
   footerDateFormat?: "iso" | "locale" | "none"; // control footer date format
   footerFormat?: string; // tokenized format for footer text: {app}, {title}, {date}, {page}, {pages}, {sep}
@@ -94,7 +97,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, hyphenateLongWords, ellipsisOverflow, debugBoundingBoxes, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -244,17 +247,32 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
           if (line) out.push(line);
           // Hard-break overlong word
           if (font.widthOfTextAtSize(word, bodyFontSize) > maxWidth) {
-            let chunk = "";
-            for (const ch of word) {
-              const testChunk = chunk + ch;
-              if (font.widthOfTextAtSize(testChunk, bodyFontSize) <= maxWidth) {
-                chunk = testChunk;
-              } else {
-                if (chunk) out.push(chunk);
-                chunk = ch;
+            if (hyphenateLongWords) {
+              // naive hyphenation: break word into chunks that fit with a trailing '-'
+              let remaining = word;
+              while (font.widthOfTextAtSize(remaining, bodyFontSize) > maxWidth && remaining.length > 2) {
+                let cut = remaining.length - 1;
+                while (cut > 2 && font.widthOfTextAtSize(remaining.slice(0, cut) + '-', bodyFontSize) > maxWidth) {
+                  cut--;
+                }
+                if (cut <= 2) break;
+                out.push(remaining.slice(0, cut) + '-');
+                remaining = remaining.slice(cut);
               }
+              line = remaining;
+            } else {
+              let chunk = "";
+              for (const ch of word) {
+                const testChunk = chunk + ch;
+                if (font.widthOfTextAtSize(testChunk, bodyFontSize) <= maxWidth) {
+                  chunk = testChunk;
+                } else {
+                  if (chunk) out.push(chunk);
+                  chunk = ch;
+                }
+              }
+              line = chunk;
             }
-            line = chunk;
           } else {
             line = word;
           }
@@ -280,6 +298,7 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     let currentY = bodyY;
     const lineStep = bodyFontSize * bodyLineHeight;
     let linesDrawn = 0;
+    let lastDrawnY = currentY;
     for (const lineObj of bodyLines) {
       const line = lineObj.text;
       if (currentY < m.bottom + lineStep) break; // stop drawing if we run out of space
@@ -292,15 +311,45 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
         const indentX = lineObj.first && bodyIndentFirstLine ? bodyIndentFirstLine : 0;
         const availableWidth = innerWidth - (lineObj.first && bodyIndentFirstLine ? bodyIndentFirstLine : 0);
         const lineX = bodyAlign === "center" ? innerLeft + indentX + Math.max(0, (availableWidth - lineWidth) / 2) : innerLeft + indentX;
+        if (debugBoundingBoxes) {
+          const boxHeight = bodyFontSize * bodyLineHeight;
+            page.drawRectangle({
+              x: lineX - 1,
+              y: currentY - bodyFontSize * 0.2,
+              width: lineWidth + 2,
+              height: boxHeight,
+              color: rgb(1, 0, 0),
+              opacity: 0.05,
+              borderColor: rgb(1, 0, 0),
+              borderWidth: 0.25,
+            });
+        }
         page.drawText(line, {
-          x: lineX,
-          y: currentY,
+            x: lineX,
+            y: currentY,
+            size: bodyFontSize,
+            font,
+            color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
+          });
+        lastDrawnY = currentY;
+        currentY -= lineStep;
+        linesDrawn++;
+      }
+    }
+
+    if (ellipsisOverflow) {
+      const totalNonBlank = bodyLines.filter(b => b.text.trim().length > 0).length;
+      const wasTruncatedByLines = typeof bodyMaxLines === "number" && totalNonBlank > (bodyMaxLines ?? 0);
+      const wasTruncatedBySpace = currentY < m.bottom + lineStep;
+      if ((wasTruncatedByLines || wasTruncatedBySpace) && linesDrawn > 0) {
+        const ellipsis = "…";
+        page.drawText(ellipsis, {
+          x: innerLeft + (bodyAlign === "center" ? 0 : 0) + 2,
+          y: lastDrawnY,
           size: bodyFontSize,
           font,
           color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
         });
-        currentY -= lineStep;
-        linesDrawn++;
       }
     }
 
