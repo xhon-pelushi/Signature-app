@@ -38,6 +38,8 @@ export type CreateEmptyPdfOptions = {
   backgroundColor?: [number, number, number]; // 0..1 rgb, optional
   footerAlign?: "left" | "center" | "right"; // where to place footer text
   footerColor?: [number, number, number]; // footer text color (default gray)
+  titleSpacing?: number; // extra vertical space after the title (points)
+  subtitleSpacing?: number; // extra vertical space after the subtitle (points)
   // Layout
   margins?: number | { top: number; right: number; bottom: number; left: number }; // points
   ruleOfThirds?: boolean; // draw faint thirds grid overlay inside margins
@@ -99,7 +101,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, hyphenateLongWords, ellipsisOverflow, debugBoundingBoxes, bodyLineNumbers, bodyMaxParagraphs, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
+  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, hyphenateLongWords, ellipsisOverflow, debugBoundingBoxes, bodyLineNumbers, bodyMaxParagraphs, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], titleSpacing = 0, subtitleSpacing = 0, margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -205,11 +207,11 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
     }
 
     // Optional subtitle
-    let bodyY = height - m.top - titleSize - 36;
+    let bodyY = height - m.top - titleSize - 36 - (titleSpacing ?? 0);
     if (subtitleText) {
       const subtitleTextTx = transformText(subtitleText, subtitleTransform);
       const subX = subtitleAlign === "center" ? (width - font.widthOfTextAtSize(subtitleTextTx, subtitleFontSize)) / 2 : m.left;
-      const subY = height - m.top - titleSize - 18;
+      const subY = height - m.top - titleSize - 18 - (titleSpacing ?? 0);
       page.drawText(subtitleTextTx, {
         x: subX,
         y: subY,
@@ -217,7 +219,7 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
         font,
         color: rgb(subtitleColor[0], subtitleColor[1], subtitleColor[2]),
       });
-      bodyY = subY - 24;
+      bodyY = subY - 24 - (subtitleSpacing ?? 0);
     }
     // Optional header rule (drawn relative to body start)
     if (headerRule) {

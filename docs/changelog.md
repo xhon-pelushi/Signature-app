@@ -74,6 +74,7 @@ All notable changes to this project will be documented in this file.
 - Lib: Add `hyphenateLongWords` to perform naive hyphenation when breaking overlong words in body text
 - Lib: Add `ellipsisOverflow` to append an ellipsis when body text is truncated by space or max line constraints
 - Lib: Add `debugBoundingBoxes` to visualize body line rectangles for layout debugging
+ - Lib: Add `titleSpacing` and `subtitleSpacing` to control extra vertical spacing after title/subtitle
 
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
