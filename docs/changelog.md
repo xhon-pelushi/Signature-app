@@ -4,6 +4,10 @@
 ## 2025-09-06
 - Docs: Add detailed JSDoc to `createEmptyPdf` for improved API clarity and DX
 
+
+## 2025-09-25
+- Introduced global `ErrorBoundary` component wrapping root layout to provide graceful UI fallback and retry on rendering errors
+- Adds resilience for experimental client components & future dynamic PDF tooling
 All notable changes to this project will be documented in this file.
  
 ## 2025-09-07

@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthProvider from "@/components/auth/AuthProvider";
 import { AuthStatus } from "@/components/auth/AuthStatus";
 import Link from "next/link";
+import { ErrorBoundary } from "@/components/system/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,9 +41,11 @@ export default function RootLayout({
               <AuthStatus />
             </div>
           </header>
-          <main className="max-w-5xl mx-auto px-4 py-6">
-            {children}
-          </main>
+          <ErrorBoundary>
+            <main className="max-w-5xl mx-auto px-4 py-6">
+              {children}
+            </main>
+          </ErrorBoundary>
         </AuthProvider>
       </body>
     </html>
