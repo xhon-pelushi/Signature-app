@@ -1,7 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
-
-type PageSizeName = "LETTER" | "A4" | "LEGAL" | "TABLOID" | "A5";
-type PageSize = PageSizeName | [number, number];
+import { resolveSize, type PageSize, type PageSizeName } from "./pdf/geometry";
+import { wrapParagraph as wrapParagraphHelper } from "./pdf/text";
+import { drawDashedLine as drawDashedLineHelper } from "./pdf/draw";
 
 export type CreateEmptyPdfOptions = {
   pages?: number; // number of pages to generate
@@ -87,24 +87,7 @@ export type CreateEmptyPdfOptions = {
   suppressPageNumbersOnFirstPage?: boolean; // don't draw pageNumbers for first page
 };
 
-const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
-  LETTER: [612, 792],
-  A4: [595.28, 841.89],
-  LEGAL: [612, 1008],
-  TABLOID: [792, 1224],
-  A5: [419.53, 595.28],
-};
-
-function resolveSize(
-  size: PageSize = "LETTER",
-  orientation: "portrait" | "landscape" = "portrait",
-): [number, number] {
-  const base = Array.isArray(size) ? size : (PAGE_SIZES[size] ?? PAGE_SIZES.LETTER);
-  if (orientation === "landscape") {
-    return [base[1], base[0]];
-  }
-  return [base[0], base[1]];
-}
+// page size helper moved to ./pdf/geometry
 
 /**
  * Generate a sample PDF for testing the viewer and signature workflow.
@@ -216,46 +199,17 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
       } as const;
       if (pageBorder.dashed || (pageBorder.dashArray && pageBorder.dashArray.length > 0)) {
         const dash = pageBorder.dashArray ?? [6, 4];
-        // Draw dashed rectangle manually using four lines
+        // Draw dashed rectangle with helper using four lines
         const x0 = rect.x,
           y0 = rect.y,
           x1 = rect.x + rect.width,
           y1 = rect.y + rect.height;
         const color = rect.borderColor;
         const thickness = rect.borderWidth;
-        const drawDashedLine = (sx: number, sy: number, ex: number, ey: number) => {
-          const dx = ex - sx;
-          const dy = ey - sy;
-          const len = Math.hypot(dx, dy);
-          if (len === 0) return;
-          const ux = dx / len;
-          const uy = dy / len;
-          let dist = 0;
-          let draw = true;
-          let idx = 0;
-          let x = sx;
-          let y = sy;
-          while (dist < len) {
-            const seg = dash[idx % dash.length];
-            const nx = x + ux * seg;
-            const ny = y + uy * seg;
-            const clamped = Math.min(seg, len - dist);
-            const cx = x + ux * clamped;
-            const cy = y + uy * clamped;
-            if (draw) {
-              page.drawLine({ start: { x, y }, end: { x: cx, y: cy }, thickness, color });
-            }
-            x = nx;
-            y = ny;
-            dist += seg;
-            idx++;
-            draw = !draw;
-          }
-        };
-        drawDashedLine(x0, y0, x1, y0); // bottom
-        drawDashedLine(x1, y0, x1, y1); // right
-        drawDashedLine(x1, y1, x0, y1); // top
-        drawDashedLine(x0, y1, x0, y0); // left
+        drawDashedLineHelper(page, x0, y0, x1, y0, { dash, color, thickness }); // bottom
+        drawDashedLineHelper(page, x1, y0, x1, y1, { dash, color, thickness }); // right
+        drawDashedLineHelper(page, x1, y1, x0, y1, { dash, color, thickness }); // top
+        drawDashedLineHelper(page, x0, y1, x0, y0, { dash, color, thickness }); // left
       } else {
         page.drawRectangle(rect);
       }
@@ -342,60 +296,7 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
       bodyY = ruleY - 8;
     }
 
-    // Body text with paragraph-aware wrapping
-    const wrapParagraph = (para: string, maxWidth: number): string[] => {
-      const out: string[] = [];
-      const words = para.split(/\s+/);
-      let line = "";
-      for (const word of words) {
-        const candidate = line ? line + " " + word : word;
-        const candidateWidth = font.widthOfTextAtSize(candidate, bodyFontSize);
-        if (candidateWidth <= maxWidth) {
-          line = candidate;
-        } else {
-          if (line) out.push(line);
-          // Hard-break overlong word
-          if (font.widthOfTextAtSize(word, bodyFontSize) > maxWidth) {
-            if (hyphenateLongWords) {
-              // naive hyphenation: break word into chunks that fit with a trailing '-'
-              let remaining = word;
-              while (
-                font.widthOfTextAtSize(remaining, bodyFontSize) > maxWidth &&
-                remaining.length > 2
-              ) {
-                let cut = remaining.length - 1;
-                while (
-                  cut > 2 &&
-                  font.widthOfTextAtSize(remaining.slice(0, cut) + "-", bodyFontSize) > maxWidth
-                ) {
-                  cut--;
-                }
-                if (cut <= 2) break;
-                out.push(remaining.slice(0, cut) + "-");
-                remaining = remaining.slice(cut);
-              }
-              line = remaining;
-            } else {
-              let chunk = "";
-              for (const ch of word) {
-                const testChunk = chunk + ch;
-                if (font.widthOfTextAtSize(testChunk, bodyFontSize) <= maxWidth) {
-                  chunk = testChunk;
-                } else {
-                  if (chunk) out.push(chunk);
-                  chunk = ch;
-                }
-              }
-              line = chunk;
-            }
-          } else {
-            line = word;
-          }
-        }
-      }
-      if (line) out.push(line);
-      return out;
-    };
+    // Body text with paragraph-aware wrapping (extracted to helper)
 
     const innerLeft = m.left + contentPadding;
     const innerRight = width - m.right - contentPadding;
@@ -406,7 +307,13 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
     }
     const bodyLines: { text: string; first: boolean }[] = [];
     for (const p of paragraphs) {
-      const lines = wrapParagraph(p, innerWidth - (bodyIndentFirstLine ?? 0));
+      const lines = wrapParagraphHelper(
+        p,
+        innerWidth - (bodyIndentFirstLine ?? 0),
+        bodyFontSize,
+        { hyphenateLongWords },
+        (text, size) => font.widthOfTextAtSize(text, size),
+      );
       lines.forEach((ln, idx) => bodyLines.push({ text: ln, first: idx === 0 }));
       // add blank marker for paragraph spacing if paragraphSpacing provided
       if (paragraphSpacing && paragraphSpacing > 0) {
