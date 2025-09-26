@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { createEmptyPdf } from "@/lib/createEmptyPdf";
+import { validatePdfFile } from "@/lib/validatePdfFile";
 import dynamic from "next/dynamic";
 const ThumbnailsRail = dynamic(() => import("@/components/pdf/ThumbnailsRail"), { ssr: false });
 import { useFields, FieldsByPage } from "@/hooks/useFields";
@@ -76,17 +77,17 @@ export default function SignPage() {
 
   const [uploadError, setUploadError] = useState<string | null>(null);
   const MAX_MB = 25; // generous default
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploadError(null);
-    if (file.type !== 'application/pdf') {
-      setUploadError('Please select a valid PDF file.');
+    const result = await validatePdfFile(file, { maxSizeBytes: MAX_MB * 1024 * 1024 });
+    if (!result.ok) {
+      setUploadError(result.errors[0]);
       return;
     }
-    if (file.size > MAX_MB * 1024 * 1024) {
-      setUploadError(`File is too large. Max ${MAX_MB} MB.`);
-      return;
+    if (result.warnings.length) {
+      console.warn('PDF validation warnings:', result.warnings);
     }
     setUploadedFile(file);
   };
@@ -95,18 +96,18 @@ export default function SignPage() {
     event.preventDefault();
   };
 
-  const handleDrop = (event: React.DragEvent) => {
+  const handleDrop = async (event: React.DragEvent) => {
     event.preventDefault();
     setUploadError(null);
     const file = event.dataTransfer.files[0];
     if (!file) return;
-    if (file.type !== 'application/pdf') {
-      setUploadError('Please drop a valid PDF file.');
+    const result = await validatePdfFile(file, { maxSizeBytes: MAX_MB * 1024 * 1024 });
+    if (!result.ok) {
+      setUploadError(result.errors[0]);
       return;
     }
-    if (file.size > MAX_MB * 1024 * 1024) {
-      setUploadError(`File is too large. Max ${MAX_MB} MB.`);
-      return;
+    if (result.warnings.length) {
+      console.warn('PDF validation warnings:', result.warnings);
     }
     setUploadedFile(file);
   };

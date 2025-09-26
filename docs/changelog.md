@@ -76,6 +76,9 @@ All notable changes to this project will be documented in this file.
 - Lib: Add `debugBoundingBoxes` to visualize body line rectangles for layout debugging
  - Lib: Add `titleSpacing` and `subtitleSpacing` to control extra vertical spacing after title/subtitle
 
+## 2025-09-26
+- Lib: Add `validatePdfFile` utility (MIME, size, header sniff) and integrate into Sign page upload & drag-drop
+
 ## 2025-09-05
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
 - UX: Minor tuning for drag/resize performance in signing overlay
