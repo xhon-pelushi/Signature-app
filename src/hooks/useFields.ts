@@ -17,11 +17,14 @@ export function useFields() {
   const apply = useCallback(
     (next: FieldsByPage) => {
       // Push current fields to history, clear redo, then set new fields.
-      setHistory((h) => [...h, snapshot(fields)]);
-      setRedoStack([]);
+      setHistory((h) => {
+        // compute from latest fields to avoid stale closure and loops
+        return [...h, snapshot(next)];
+      });
+      setRedoStack(() => []);
       setFields(next);
     },
-    [fields, snapshot],
+    [snapshot],
   );
 
   const addField = useCallback(
@@ -66,38 +69,38 @@ export function useFields() {
   );
 
   const clear = useCallback(() => {
-    setHistory((h) => [...h, snapshot(fields)]);
+    setHistory((h) => [...h, snapshot({})]);
     setRedoStack([]);
     setFields({});
-  }, [fields, snapshot]);
+  }, [snapshot]);
   const setAll = useCallback(
     (all: FieldsByPage) => {
-      setHistory((h) => [...h, snapshot(fields)]);
+      setHistory((h) => [...h, snapshot(all)]);
       setRedoStack([]);
       setFields(all);
     },
-    [fields, snapshot],
+    [snapshot],
   );
 
   const undo = useCallback(() => {
     setHistory((h) => {
       if (h.length === 0) return h;
       const prev = h[h.length - 1];
-      setRedoStack((r) => [...r, snapshot(fields)]);
+      setRedoStack((r) => [...r, snapshot(prev)]);
       setFields(prev);
       return h.slice(0, -1);
     });
-  }, [fields, snapshot]);
+  }, [snapshot]);
 
   const redo = useCallback(() => {
     setRedoStack((r) => {
       if (r.length === 0) return r;
       const next = r[r.length - 1];
-      setHistory((h) => [...h, snapshot(fields)]);
+      setHistory((h) => [...h, snapshot(next)]);
       setFields(next);
       return r.slice(0, -1);
     });
-  }, [fields, snapshot]);
+  }, [snapshot]);
 
   const canUndo = history.length > 0;
   const canRedo = redoStack.length > 0;
