@@ -11,7 +11,7 @@ type Props = {
 export function SignatureCanvas({ strokeWidth = 2, strokeColor = "#000", onChange }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [drawing, setDrawing] = useState(false);
-  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [, setSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
     const c = canvasRef.current;

@@ -23,7 +23,13 @@ export default function ThumbnailsRail({ file, onSelect, currentPage }: Props) {
   const fileProp = useMemo(() => (typeof file === "string" ? { url: file } : file), [file]);
 
   return (
-    <div className="w-32 bg-white border rounded-lg overflow-auto" style={{ maxHeight: 600 }}>
+    <div
+      className="w-32 bg-white border rounded-lg overflow-auto"
+      style={{ maxHeight: 600 }}
+      role="listbox"
+      aria-label="Page thumbnails"
+      aria-activedescendant={`thumb-${currentPage}`}
+    >
       <Document
         file={fileProp}
         onLoadSuccess={({ numPages }) => setNumPages(numPages)}
@@ -38,7 +44,10 @@ export default function ThumbnailsRail({ file, onSelect, currentPage }: Props) {
           {Array.from({ length: numPages }, (_, i) => i + 1).map((p) => (
             <button
               key={p}
+              id={`thumb-${p}`}
               className={`block w-full border rounded hover:border-blue-500 ${p === currentPage ? "ring-2 ring-blue-500" : ""}`}
+              aria-selected={p === currentPage}
+              role="option"
               onClick={() => onSelect(p)}
             >
               <Page

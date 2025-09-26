@@ -80,7 +80,7 @@ export default function SignPage() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [selectedFieldId, currentPage, fields, updateField]);
+  }, [selectedFieldId, currentPage, fields, updateField, removeField]);
 
   const [uploadError, setUploadError] = useState<string | null>(null);
   const MAX_MB = 25; // generous default
@@ -135,7 +135,7 @@ export default function SignPage() {
     const url = URL.createObjectURL(uploadedFile);
     setPdfUrl(url);
     return () => URL.revokeObjectURL(url);
-  }, [uploadedFile]);
+  }, [uploadedFile, pdfUrl]);
 
   // Persistence: load/save fields & signature per document name
   useEffect(() => {

@@ -121,14 +121,14 @@ export default function PDFViewer({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [numPages]);
+  }, [numPages, pageNumber]);
 
   // Sync with controlled page prop
   useEffect(() => {
     if (typeof page === "number" && page > 0 && page !== pageNumber) {
       setPageNumber(page);
     }
-  }, [page]);
+  }, [page, pageNumber]);
 
   // Observe rendered page size for overlay
   useEffect(() => {
@@ -145,7 +145,7 @@ export default function PDFViewer({
   return (
     <div className={`flex flex-col ${className ?? ""}`}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-white rounded-t-lg">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-white rounded-t-lg" role="toolbar" aria-label="PDF viewer controls">
         <div className="flex items-center gap-2">
           <button
             className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
@@ -160,7 +160,7 @@ export default function PDFViewer({
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm text-gray-700" aria-live="polite">
+          <span className="text-sm text-gray-700" aria-live="polite" aria-atomic="true">
             Page {pageNumber} / {numPages || "-"}
           </span>
           <button
@@ -178,7 +178,7 @@ export default function PDFViewer({
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" aria-label="Zoom controls">
           <button
             className="p-2 rounded hover:bg-gray-100"
             onClick={() => setScale((s) => Math.max(0.25, parseFloat((s - 0.1).toFixed(2))))}

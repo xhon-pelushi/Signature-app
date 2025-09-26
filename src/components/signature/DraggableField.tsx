@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Field } from "@/types/fields";
 
 type Props = {
@@ -42,7 +42,7 @@ export function DraggableField({
 
   const px = (v: number) => Math.round(v * 1000) / 1000;
   const snap = (v: number, step = 0.005) => Math.round(v / step) * step;
-  const clamp = (nf: Field) => {
+  const clamp = useCallback((nf: Field) => {
     const minW = 0.04;
     const minH = 0.02;
     const x = snap(Math.max(0, Math.min(1 - nf.w, nf.x)));
@@ -50,7 +50,7 @@ export function DraggableField({
     const w = snap(Math.max(minW, Math.min(1 - x, nf.w)));
     const h = snap(Math.max(minH, Math.min(1 - y, nf.h)));
     return { ...nf, x: px(x), y: px(y), w: px(w), h: px(h) } as Field;
-  };
+  }, []);
 
   const onMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -65,7 +65,7 @@ export function DraggableField({
   };
 
   // rAF-throttle onChange to ~60fps to reduce re-renders during drag
-  const scheduleChange = (nf: Field) => {
+  const scheduleChange = useCallback((nf: Field) => {
     pendingRef.current = nf;
     if (rafIdRef.current == null) {
       rafIdRef.current = requestAnimationFrame(() => {
@@ -74,7 +74,7 @@ export function DraggableField({
         if (next) onChange(clamp(next));
       });
     }
-  };
+  }, [onChange, clamp]);
 
   useEffect(() => {
     if (!dragging && !resizing) return;
@@ -128,7 +128,7 @@ export function DraggableField({
         rafIdRef.current = null;
       }
     };
-  }, [dragging, resizing, start, startField, pageWidth, pageHeight, onChange]);
+  }, [dragging, resizing, start, startField, pageWidth, pageHeight, onChange, scheduleChange]);
 
   const onResizeStart = (corner: Corner) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -157,6 +157,28 @@ export function DraggableField({
       ref={elRef}
       className={`absolute border-2 ${borderColor} bg-blue-50/30 rounded-sm cursor-move select-none`}
       style={style}
+      role="button"
+      tabIndex={0}
+      aria-label={`${field.type} field${signerName ? ` for ${signerName}` : ''}`}
+      aria-grabbed={dragging || !!resizing}
+      onKeyDown={(e) => {
+        // Keyboard nudging with arrow keys
+        const step = 0.005; // 0.5% of page
+        let dx = 0, dy = 0;
+        if (e.key === 'ArrowLeft') dx = -step;
+        else if (e.key === 'ArrowRight') dx = step;
+        else if (e.key === 'ArrowUp') dy = -step;
+        else if (e.key === 'ArrowDown') dy = step;
+        else return;
+        e.preventDefault();
+        const nf: Field = {
+          ...field,
+          x: Math.max(0, Math.min(1 - field.w, field.x + dx)),
+          y: Math.max(0, Math.min(1 - field.h, field.y + dy)),
+        };
+        onChange(nf);
+        onSelect?.(field.id);
+      }}
       onMouseDown={onMouseDown}
       onDoubleClick={() => {
         if (field.type === "text") {
@@ -169,6 +191,7 @@ export function DraggableField({
     >
       <div
         className="flex items-center justify-between text-[10px] text-blue-700 px-1 py-0.5 bg-blue-50/70"
+        role="toolbar"
         onMouseDown={() => {
           onSelect?.(field.id);
         }}

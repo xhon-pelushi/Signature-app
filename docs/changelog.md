@@ -3,6 +3,7 @@
 ## 2025-09-06
 
 - Docs: Add detailed JSDoc to `createEmptyPdf` for improved API clarity and DX
+- Accessibility: Added keyboard nudging and ARIA roles/labels to draggable fields and PDF viewer controls
 
 ## 2025-09-25
 

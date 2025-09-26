@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PenTool, FileText, Users, Mail, Calendar, Plus, Trash2 } from "lucide-react";
+import { PenTool, FileText, Users, Calendar, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 interface Signer {
@@ -116,7 +116,7 @@ export default function CreatePage() {
               </div>
 
               <div className="space-y-4">
-                {signers.map((signer, index) => (
+                {signers.map((signer) => (
                   <div key={signer.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-medium text-gray-700">
