@@ -100,7 +100,7 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  * Example:
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
-export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
+async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
   const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, hyphenateLongWords, ellipsisOverflow, debugBoundingBoxes, bodyLineNumbers, bodyMaxParagraphs, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], titleSpacing = 0, subtitleSpacing = 0, margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
 
   const pdfDoc = await PDFDocument.create();
@@ -483,8 +483,25 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
   }
 
   const bytes = await pdfDoc.save();
-  // Convert to ArrayBuffer for Blob typing compatibility
   const arrayCopy = new Uint8Array(bytes.byteLength);
   arrayCopy.set(bytes);
-  return new Blob([arrayCopy], { type: "application/pdf" });
+  return arrayCopy;
+}
+
+export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
+  const bytes = await buildPdfBytes(title, options);
+  try {
+    return new Blob([bytes], { type: "application/pdf" });
+  } catch {
+    const buffer = bytes.buffer.slice(0);
+    return {
+      type: "application/pdf",
+      size: bytes.byteLength,
+      arrayBuffer: async () => buffer,
+    } as unknown as Blob;
+  }
+}
+
+export async function createEmptyPdfBytes(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
+  return buildPdfBytes(title, options);
 }
