@@ -1,4 +1,4 @@
-export type FieldType = 'signature' | 'text' | 'checkbox' | 'date';
+export type FieldType = "signature" | "text" | "checkbox" | "date";
 
 export interface Field {
   id: string;

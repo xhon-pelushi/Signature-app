@@ -28,7 +28,14 @@ export type CreateEmptyPdfOptions = {
   ellipsisOverflow?: boolean; // append an ellipsis character if body text is truncated by space or line cap
   debugBoundingBoxes?: boolean; // draw translucent rectangles behind each rendered body line for layout debugging
   bodyMaxParagraphs?: number; // cap the number of paragraphs processed from bodyText
-  bodyLineNumbers?: boolean | { color?: [number, number, number]; align?: 'left' | 'right'; gutter?: number; fontSize?: number }; // show line numbers for body lines (debug/reading)
+  bodyLineNumbers?:
+    | boolean
+    | {
+        color?: [number, number, number];
+        align?: "left" | "right";
+        gutter?: number;
+        fontSize?: number;
+      }; // show line numbers for body lines (debug/reading)
   titleAlign?: "left" | "center"; // alignment for the title text
   footerDateFormat?: "iso" | "locale" | "none"; // control footer date format
   footerFormat?: string; // tokenized format for footer text: {app}, {title}, {date}, {page}, {pages}, {sep}
@@ -50,9 +57,20 @@ export type CreateEmptyPdfOptions = {
   subtitleColor?: [number, number, number];
   subtitleFontSize?: number; // default 14
   subtitleAlign?: "left" | "center";
-  pageBorder?: { color?: [number, number, number]; width?: number; inset?: number; dashed?: boolean; dashArray?: number[] };
+  pageBorder?: {
+    color?: [number, number, number];
+    width?: number;
+    inset?: number;
+    dashed?: boolean;
+    dashArray?: number[];
+  };
   // Header rule under title/subtitle
-  headerRule?: { color?: [number, number, number]; width?: number; offset?: number; inset?: number };
+  headerRule?: {
+    color?: [number, number, number];
+    width?: number;
+    offset?: number;
+    inset?: number;
+  };
   // Text transforms for header texts
   titleTransform?: "uppercase" | "lowercase" | "titlecase" | "none";
   subtitleTransform?: "uppercase" | "lowercase" | "titlecase" | "none";
@@ -77,8 +95,11 @@ const PAGE_SIZES: Record<PageSizeName, [number, number]> = {
   A5: [419.53, 595.28],
 };
 
-function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "landscape" = "portrait"): [number, number] {
-  const base = Array.isArray(size) ? size : PAGE_SIZES[size] ?? PAGE_SIZES.LETTER;
+function resolveSize(
+  size: PageSize = "LETTER",
+  orientation: "portrait" | "landscape" = "portrait",
+): [number, number] {
+  const base = Array.isArray(size) ? size : (PAGE_SIZES[size] ?? PAGE_SIZES.LETTER);
   if (orientation === "landscape") {
     return [base[1], base[0]];
   }
@@ -101,7 +122,54 @@ function resolveSize(size: PageSize = "LETTER", orientation: "portrait" | "lands
  *   const blob = await createEmptyPdf("Demo", { pages: 2, size: "A4", orientation: "landscape" });
  */
 async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
-  const { pages = 1, size = "LETTER", orientation = "portrait", footer = true, subject = "Sample PDF", author = "SignatureApp", keywords = ["SignatureApp", "Sample", "PDF"], guides = false, watermark, watermarkAngle = 45, titleColor = [0.2, 0.2, 0.2], bodyText = "This is a sample PDF generated for testing the viewer.", bodyColor = [0.3, 0.3, 0.3], bodyLineHeight = 1.4, bodyAlign = "left", bodyMaxLines, bodyIndentFirstLine, paragraphSpacing, hyphenateLongWords, ellipsisOverflow, debugBoundingBoxes, bodyLineNumbers, bodyMaxParagraphs, titleAlign = "left", footerDateFormat = "iso", footerFormat, titleFontSize = 24, bodyFontSize = 12, backgroundColor, footerAlign = "left", footerColor = [0.5, 0.5, 0.5], titleSpacing = 0, subtitleSpacing = 0, margins, contentPadding = 0, subtitleText, subtitleColor = [0.35, 0.35, 0.35], subtitleFontSize = 14, subtitleAlign = "left", pageBorder, headerRule, titleTransform = "none", subtitleTransform = "none", pageNumbers, suppressFooterOnFirstPage, suppressPageNumbersOnFirstPage } = options;
+  const {
+    pages = 1,
+    size = "LETTER",
+    orientation = "portrait",
+    footer = true,
+    subject = "Sample PDF",
+    author = "SignatureApp",
+    keywords = ["SignatureApp", "Sample", "PDF"],
+    guides = false,
+    watermark,
+    watermarkAngle = 45,
+    titleColor = [0.2, 0.2, 0.2],
+    bodyText = "This is a sample PDF generated for testing the viewer.",
+    bodyColor = [0.3, 0.3, 0.3],
+    bodyLineHeight = 1.4,
+    bodyAlign = "left",
+    bodyMaxLines,
+    bodyIndentFirstLine,
+    paragraphSpacing,
+    hyphenateLongWords,
+    ellipsisOverflow,
+    debugBoundingBoxes,
+    bodyLineNumbers,
+    bodyMaxParagraphs,
+    titleAlign = "left",
+    footerDateFormat = "iso",
+    footerFormat,
+    titleFontSize = 24,
+    bodyFontSize = 12,
+    backgroundColor,
+    footerAlign = "left",
+    footerColor = [0.5, 0.5, 0.5],
+    titleSpacing = 0,
+    subtitleSpacing = 0,
+    margins,
+    contentPadding = 0,
+    subtitleText,
+    subtitleColor = [0.35, 0.35, 0.35],
+    subtitleFontSize = 14,
+    subtitleAlign = "left",
+    pageBorder,
+    headerRule,
+    titleTransform = "none",
+    subtitleTransform = "none",
+    pageNumbers,
+    suppressFooterOnFirstPage,
+    suppressPageNumbersOnFirstPage,
+  } = options;
 
   const pdfDoc = await PDFDocument.create();
 
@@ -127,7 +195,13 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
 
     // Optional page background fill
     if (backgroundColor) {
-      page.drawRectangle({ x: 0, y: 0, width, height, color: rgb(backgroundColor[0], backgroundColor[1], backgroundColor[2]) });
+      page.drawRectangle({
+        x: 0,
+        y: 0,
+        width,
+        height,
+        color: rgb(backgroundColor[0], backgroundColor[1], backgroundColor[2]),
+      });
     }
     // Optional page border
     if (pageBorder) {
@@ -143,22 +217,39 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
       if (pageBorder.dashed || (pageBorder.dashArray && pageBorder.dashArray.length > 0)) {
         const dash = pageBorder.dashArray ?? [6, 4];
         // Draw dashed rectangle manually using four lines
-        const x0 = rect.x, y0 = rect.y, x1 = rect.x + rect.width, y1 = rect.y + rect.height;
-        const color = rect.borderColor; const thickness = rect.borderWidth;
+        const x0 = rect.x,
+          y0 = rect.y,
+          x1 = rect.x + rect.width,
+          y1 = rect.y + rect.height;
+        const color = rect.borderColor;
+        const thickness = rect.borderWidth;
         const drawDashedLine = (sx: number, sy: number, ex: number, ey: number) => {
-          const dx = ex - sx; const dy = ey - sy; const len = Math.hypot(dx, dy);
+          const dx = ex - sx;
+          const dy = ey - sy;
+          const len = Math.hypot(dx, dy);
           if (len === 0) return;
-          const ux = dx / len; const uy = dy / len;
-          let dist = 0; let draw = true; let idx = 0; let x = sx; let y = sy;
+          const ux = dx / len;
+          const uy = dy / len;
+          let dist = 0;
+          let draw = true;
+          let idx = 0;
+          let x = sx;
+          let y = sy;
           while (dist < len) {
             const seg = dash[idx % dash.length];
-            const nx = x + ux * seg; const ny = y + uy * seg;
+            const nx = x + ux * seg;
+            const ny = y + uy * seg;
             const clamped = Math.min(seg, len - dist);
-            const cx = x + ux * clamped; const cy = y + uy * clamped;
+            const cx = x + ux * clamped;
+            const cy = y + uy * clamped;
             if (draw) {
               page.drawLine({ start: { x, y }, end: { x: cx, y: cy }, thickness, color });
             }
-            x = nx; y = ny; dist += seg; idx++; draw = !draw;
+            x = nx;
+            y = ny;
+            dist += seg;
+            idx++;
+            draw = !draw;
           }
         };
         drawDashedLine(x0, y0, x1, y0); // bottom
@@ -171,11 +262,12 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
     }
 
     // Resolve margins (default 1")
-    const m = typeof margins === "number"
-      ? { top: margins, right: margins, bottom: margins, left: margins }
-      : margins ?? { top: 72, right: 72, bottom: 72, left: 72 };
-  const contentWidth = Math.max(0, width - m.left - m.right);
-  const contentHeight = Math.max(0, height - m.top - m.bottom);
+    const m =
+      typeof margins === "number"
+        ? { top: margins, right: margins, bottom: margins, left: margins }
+        : (margins ?? { top: 72, right: 72, bottom: 72, left: 72 });
+    const contentWidth = Math.max(0, width - m.left - m.right);
+    const contentHeight = Math.max(0, height - m.top - m.bottom);
 
     // Title
     const transformText = (t: string, kind: "uppercase" | "lowercase" | "titlecase" | "none") => {
@@ -191,7 +283,8 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
       }
     };
     const titleText = transformText(title, titleTransform);
-    const titleX = titleAlign === "center" ? (width - font.widthOfTextAtSize(titleText, titleSize)) / 2 : m.left;
+    const titleX =
+      titleAlign === "center" ? (width - font.widthOfTextAtSize(titleText, titleSize)) / 2 : m.left;
     page.drawText(titleText, {
       x: titleX,
       y: height - m.top - titleSize,
@@ -200,17 +293,29 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
       color: rgb(titleColor[0], titleColor[1], titleColor[2]),
     });
     if (options.titleUnderline) {
-      const ux = titleAlign === "center" ? (width - font.widthOfTextAtSize(titleText, titleSize)) / 2 : m.left;
+      const ux =
+        titleAlign === "center"
+          ? (width - font.widthOfTextAtSize(titleText, titleSize)) / 2
+          : m.left;
       const uw = font.widthOfTextAtSize(titleText, titleSize);
       const uy = height - m.top - titleSize - 4;
-      page.drawLine({ start: { x: ux, y: uy }, end: { x: ux + uw, y: uy }, thickness: 0.75, color: rgb(0.7, 0.7, 0.7), opacity: 0.8 });
+      page.drawLine({
+        start: { x: ux, y: uy },
+        end: { x: ux + uw, y: uy },
+        thickness: 0.75,
+        color: rgb(0.7, 0.7, 0.7),
+        opacity: 0.8,
+      });
     }
 
     // Optional subtitle
     let bodyY = height - m.top - titleSize - 36 - (titleSpacing ?? 0);
     if (subtitleText) {
       const subtitleTextTx = transformText(subtitleText, subtitleTransform);
-      const subX = subtitleAlign === "center" ? (width - font.widthOfTextAtSize(subtitleTextTx, subtitleFontSize)) / 2 : m.left;
+      const subX =
+        subtitleAlign === "center"
+          ? (width - font.widthOfTextAtSize(subtitleTextTx, subtitleFontSize)) / 2
+          : m.left;
       const subY = height - m.top - titleSize - 18 - (titleSpacing ?? 0);
       page.drawText(subtitleTextTx, {
         x: subX,
@@ -254,13 +359,19 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
             if (hyphenateLongWords) {
               // naive hyphenation: break word into chunks that fit with a trailing '-'
               let remaining = word;
-              while (font.widthOfTextAtSize(remaining, bodyFontSize) > maxWidth && remaining.length > 2) {
+              while (
+                font.widthOfTextAtSize(remaining, bodyFontSize) > maxWidth &&
+                remaining.length > 2
+              ) {
                 let cut = remaining.length - 1;
-                while (cut > 2 && font.widthOfTextAtSize(remaining.slice(0, cut) + '-', bodyFontSize) > maxWidth) {
+                while (
+                  cut > 2 &&
+                  font.widthOfTextAtSize(remaining.slice(0, cut) + "-", bodyFontSize) > maxWidth
+                ) {
                   cut--;
                 }
                 if (cut <= 2) break;
-                out.push(remaining.slice(0, cut) + '-');
+                out.push(remaining.slice(0, cut) + "-");
                 remaining = remaining.slice(cut);
               }
               line = remaining;
@@ -290,7 +401,7 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
     const innerRight = width - m.right - contentPadding;
     const innerWidth = Math.max(0, innerRight - innerLeft);
     let paragraphs = bodyText.split(/\n/);
-    if (typeof bodyMaxParagraphs === 'number' && bodyMaxParagraphs >= 0) {
+    if (typeof bodyMaxParagraphs === "number" && bodyMaxParagraphs >= 0) {
       paragraphs = paragraphs.slice(0, bodyMaxParagraphs);
     }
     const bodyLines: { text: string; first: boolean }[] = [];
@@ -313,21 +424,25 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
       if (typeof bodyMaxLines === "number" && linesDrawn >= bodyMaxLines) break; // respect max lines cap
       if (line.trim().length === 0) {
         // paragraph spacing
-        currentY -= (paragraphSpacing || 0);
+        currentY -= paragraphSpacing || 0;
       } else {
         const lineWidth = font.widthOfTextAtSize(line, bodyFontSize);
         const indentX = lineObj.first && bodyIndentFirstLine ? bodyIndentFirstLine : 0;
-        const availableWidth = innerWidth - (lineObj.first && bodyIndentFirstLine ? bodyIndentFirstLine : 0);
-        const lineX = bodyAlign === "center" ? innerLeft + indentX + Math.max(0, (availableWidth - lineWidth) / 2) : innerLeft + indentX;
+        const availableWidth =
+          innerWidth - (lineObj.first && bodyIndentFirstLine ? bodyIndentFirstLine : 0);
+        const lineX =
+          bodyAlign === "center"
+            ? innerLeft + indentX + Math.max(0, (availableWidth - lineWidth) / 2)
+            : innerLeft + indentX;
         if (bodyLineNumbers) {
-          const lnCfg = typeof bodyLineNumbers === 'object' ? bodyLineNumbers : {};
-          const lnColor = lnCfg.color ?? [0.6,0.6,0.6];
-          const lnAlign = lnCfg.align ?? 'left';
+          const lnCfg = typeof bodyLineNumbers === "object" ? bodyLineNumbers : {};
+          const lnColor = lnCfg.color ?? [0.6, 0.6, 0.6];
+          const lnAlign = lnCfg.align ?? "left";
           const gutter = lnCfg.gutter ?? 8;
           const lnFontSize = lnCfg.fontSize ?? Math.max(8, bodyFontSize * 0.8);
           const numText = String(displayLineIndex + 1);
           const numWidth = font.widthOfTextAtSize(numText, lnFontSize);
-          const numX = lnAlign === 'left' ? innerLeft - gutter - numWidth : innerRight + gutter;
+          const numX = lnAlign === "left" ? innerLeft - gutter - numWidth : innerRight + gutter;
           page.drawText(numText, {
             x: numX,
             y: currentY,
@@ -339,24 +454,24 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
         }
         if (debugBoundingBoxes) {
           const boxHeight = bodyFontSize * bodyLineHeight;
-            page.drawRectangle({
-              x: lineX - 1,
-              y: currentY - bodyFontSize * 0.2,
-              width: lineWidth + 2,
-              height: boxHeight,
-              color: rgb(1, 0, 0),
-              opacity: 0.05,
-              borderColor: rgb(1, 0, 0),
-              borderWidth: 0.25,
-            });
+          page.drawRectangle({
+            x: lineX - 1,
+            y: currentY - bodyFontSize * 0.2,
+            width: lineWidth + 2,
+            height: boxHeight,
+            color: rgb(1, 0, 0),
+            opacity: 0.05,
+            borderColor: rgb(1, 0, 0),
+            borderWidth: 0.25,
+          });
         }
         page.drawText(line, {
-            x: lineX,
-            y: currentY,
-            size: bodyFontSize,
-            font,
-            color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
-          });
+          x: lineX,
+          y: currentY,
+          size: bodyFontSize,
+          font,
+          color: rgb(bodyColor[0], bodyColor[1], bodyColor[2]),
+        });
         lastDrawnY = currentY;
         currentY -= lineStep;
         linesDrawn++;
@@ -364,8 +479,9 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
     }
 
     if (ellipsisOverflow) {
-      const totalNonBlank = bodyLines.filter(b => b.text.trim().length > 0).length;
-      const wasTruncatedByLines = typeof bodyMaxLines === "number" && totalNonBlank > (bodyMaxLines ?? 0);
+      const totalNonBlank = bodyLines.filter((b) => b.text.trim().length > 0).length;
+      const wasTruncatedByLines =
+        typeof bodyMaxLines === "number" && totalNonBlank > (bodyMaxLines ?? 0);
       const wasTruncatedBySpace = currentY < m.bottom + lineStep;
       if ((wasTruncatedByLines || wasTruncatedBySpace) && linesDrawn > 0) {
         const ellipsis = "…";
@@ -399,11 +515,35 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
       const y1 = m.bottom + contentHeight / 3;
       const y2 = m.bottom + (contentHeight * 2) / 3;
       // verticals
-      page.drawLine({ start: { x: x1, y: m.bottom }, end: { x: x1, y: m.bottom + contentHeight }, thickness: lw, color: lineColor, opacity: 0.5 });
-      page.drawLine({ start: { x: x2, y: m.bottom }, end: { x: x2, y: m.bottom + contentHeight }, thickness: lw, color: lineColor, opacity: 0.5 });
+      page.drawLine({
+        start: { x: x1, y: m.bottom },
+        end: { x: x1, y: m.bottom + contentHeight },
+        thickness: lw,
+        color: lineColor,
+        opacity: 0.5,
+      });
+      page.drawLine({
+        start: { x: x2, y: m.bottom },
+        end: { x: x2, y: m.bottom + contentHeight },
+        thickness: lw,
+        color: lineColor,
+        opacity: 0.5,
+      });
       // horizontals
-      page.drawLine({ start: { x: m.left, y: y1 }, end: { x: m.left + contentWidth, y: y1 }, thickness: lw, color: lineColor, opacity: 0.5 });
-      page.drawLine({ start: { x: m.left, y: y2 }, end: { x: m.left + contentWidth, y: y2 }, thickness: lw, color: lineColor, opacity: 0.5 });
+      page.drawLine({
+        start: { x: m.left, y: y1 },
+        end: { x: m.left + contentWidth, y: y1 },
+        thickness: lw,
+        color: lineColor,
+        opacity: 0.5,
+      });
+      page.drawLine({
+        start: { x: m.left, y: y2 },
+        end: { x: m.left + contentWidth, y: y2 },
+        thickness: lw,
+        color: lineColor,
+        opacity: 0.5,
+      });
     }
 
     if (watermark?.text) {
@@ -424,9 +564,14 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
     }
 
     // Footer with date and page number
-  if (footer && !(suppressFooterOnFirstPage && i === 0)) {
+    if (footer && !(suppressFooterOnFirstPage && i === 0)) {
       const now = new Date();
-      const date = footerDateFormat === "none" ? "" : footerDateFormat === "locale" ? now.toLocaleDateString() : now.toISOString().slice(0, 10);
+      const date =
+        footerDateFormat === "none"
+          ? ""
+          : footerDateFormat === "locale"
+            ? now.toLocaleDateString()
+            : now.toISOString().slice(0, 10);
       const appName = "SignatureApp";
       const defaultFooterText = `Generated by ${appName}${date ? ` • ${date}` : ""} • Page ${i + 1} of ${pages}`;
       const footerText = footerFormat
@@ -455,7 +600,11 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
     }
 
     // Optional page numbers separate from footer
-  if (pageNumbers && (pageNumbers.enabled ?? true) && !(suppressPageNumbersOnFirstPage && i === 0)) {
+    if (
+      pageNumbers &&
+      (pageNumbers.enabled ?? true) &&
+      !(suppressPageNumbersOnFirstPage && i === 0)
+    ) {
       const fmt = pageNumbers.format ?? "Page {page} of {pages}";
       const text = fmt.replace("{page}", String(i + 1)).replace("{pages}", String(pages));
       const size = pageNumbers.size ?? 10;
@@ -488,7 +637,10 @@ async function buildPdfBytes(title = "Sample Document", options: CreateEmptyPdfO
   return arrayCopy;
 }
 
-export async function createEmptyPdf(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
+export async function createEmptyPdf(
+  title = "Sample Document",
+  options: CreateEmptyPdfOptions = {},
+) {
   const bytes = await buildPdfBytes(title, options);
   try {
     return new Blob([bytes], { type: "application/pdf" });
@@ -502,6 +654,9 @@ export async function createEmptyPdf(title = "Sample Document", options: CreateE
   }
 }
 
-export async function createEmptyPdfBytes(title = "Sample Document", options: CreateEmptyPdfOptions = {}) {
+export async function createEmptyPdfBytes(
+  title = "Sample Document",
+  options: CreateEmptyPdfOptions = {},
+) {
   return buildPdfBytes(title, options);
 }

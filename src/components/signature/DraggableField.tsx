@@ -19,7 +19,19 @@ type Props = {
 
 type Corner = "nw" | "ne" | "sw" | "se";
 
-export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelete, selected, onSelect, color, signerName, showGuides = true, signaturePreviewUrl }: Props) {
+export function DraggableField({
+  field,
+  pageWidth,
+  pageHeight,
+  onChange,
+  onDelete,
+  selected,
+  onSelect,
+  color,
+  signerName,
+  showGuides = true,
+  signaturePreviewUrl,
+}: Props) {
   const elRef = useRef<HTMLDivElement | null>(null);
   const [dragging, setDragging] = useState(false);
   const [start, setStart] = useState<{ x: number; y: number } | null>(null);
@@ -47,7 +59,9 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
     setStartField({ ...field });
     onSelect?.(field.id);
     // Capture pointer so drag doesn't get interrupted by iframes/canvas
-    (e.currentTarget as HTMLElement).setPointerCapture?.((e as unknown as PointerEvent).pointerId ?? 1);
+    (e.currentTarget as HTMLElement).setPointerCapture?.(
+      (e as unknown as PointerEvent).pointerId ?? 1,
+    );
   };
 
   // rAF-throttle onChange to ~60fps to reduce re-renders during drag
@@ -133,7 +147,8 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
     touchAction: "none" as const,
   } as const;
 
-  const borderColor = color || (selected ? "border-blue-600" : dragging ? "border-blue-500" : "border-blue-400");
+  const borderColor =
+    color || (selected ? "border-blue-600" : dragging ? "border-blue-500" : "border-blue-400");
   const nearCenterX = Math.abs(field.x + field.w / 2 - 0.5) < 0.01;
   const nearCenterY = Math.abs(field.y + field.h / 2 - 0.5) < 0.01;
 
@@ -144,16 +159,20 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
       style={style}
       onMouseDown={onMouseDown}
       onDoubleClick={() => {
-        if (field.type === 'text') {
-          const next = prompt('Text field label:', field.label || '');
-            if (next !== null) {
-              onChange({ ...field, label: next.trim() || undefined });
-            }
+        if (field.type === "text") {
+          const next = prompt("Text field label:", field.label || "");
+          if (next !== null) {
+            onChange({ ...field, label: next.trim() || undefined });
+          }
         }
       }}
-      
     >
-  <div className="flex items-center justify-between text-[10px] text-blue-700 px-1 py-0.5 bg-blue-50/70" onMouseDown={() => { onSelect?.(field.id); }}>
+      <div
+        className="flex items-center justify-between text-[10px] text-blue-700 px-1 py-0.5 bg-blue-50/70"
+        onMouseDown={() => {
+          onSelect?.(field.id);
+        }}
+      >
         <span className="flex items-center gap-1">
           <span>{field.type}</span>
           {signerName && (
@@ -166,7 +185,10 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
         {onDelete && (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onDelete(field.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(field.id);
+            }}
             className="ml-2 text-red-600 hover:text-red-700"
             aria-label="Remove field"
             title="Remove field"
@@ -180,12 +202,20 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
         {field.type === "signature" ? (
           signaturePreviewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={signaturePreviewUrl} alt="Signature" className="w-full h-full object-contain" />
+            <img
+              src={signaturePreviewUrl}
+              alt="Signature"
+              className="w-full h-full object-contain"
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[11px] text-blue-700/80">Sign</div>
+            <div className="w-full h-full flex items-center justify-center text-[11px] text-blue-700/80">
+              Sign
+            </div>
           )
         ) : field.type === "text" ? (
-          <div className="w-full h-full flex items-center px-2 text-[11px] text-gray-700/90 truncate">{field.label ?? "Text"}</div>
+          <div className="w-full h-full flex items-center px-2 text-[11px] text-gray-700/90 truncate">
+            {field.label ?? "Text"}
+          </div>
         ) : field.type === "date" ? (
           <div className="w-full h-full flex items-center justify-center text-[11px] text-orange-700/90">
             {new Date().toISOString().slice(0, 10)}
@@ -200,13 +230,29 @@ export function DraggableField({ field, pageWidth, pageHeight, onChange, onDelet
       {selected && (
         <>
           {/* Resize handles */}
-          <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-nw-resize" onMouseDown={onResizeStart("nw")} />
-          <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-ne-resize" onMouseDown={onResizeStart("ne")} />
-          <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-sw-resize" onMouseDown={onResizeStart("sw")} />
-          <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-se-resize" onMouseDown={onResizeStart("se")} />
+          <div
+            className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-nw-resize"
+            onMouseDown={onResizeStart("nw")}
+          />
+          <div
+            className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-ne-resize"
+            onMouseDown={onResizeStart("ne")}
+          />
+          <div
+            className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-sw-resize"
+            onMouseDown={onResizeStart("sw")}
+          />
+          <div
+            className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-600 rounded-sm cursor-se-resize"
+            onMouseDown={onResizeStart("se")}
+          />
           {/* Internal guide markers when near page center */}
-          {showGuides && nearCenterX && <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] bg-pink-500/70 pointer-events-none" />}
-          {showGuides && nearCenterY && <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-pink-500/70 pointer-events-none" />}
+          {showGuides && nearCenterX && (
+            <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] bg-pink-500/70 pointer-events-none" />
+          )}
+          {showGuides && nearCenterY && (
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-pink-500/70 pointer-events-none" />
+          )}
         </>
       )}
     </div>

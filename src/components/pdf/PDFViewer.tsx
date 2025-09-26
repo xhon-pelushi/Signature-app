@@ -2,14 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import {
-  ZoomIn,
-  ZoomOut,
-  Maximize,
-  ChevronLeft,
-  ChevronRight,
-  AlertCircle,
-} from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { Spinner } from "@/components/ui/Spinner";
 
 // Configure pdf.js worker to match the exact API version react-pdf is using
@@ -20,7 +13,8 @@ try {
   const v = (pdfjs as unknown as { version?: string }).version || "5.4.54";
   pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${v}/build/pdf.worker.min.mjs`;
 } catch {
-  pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.54/build/pdf.worker.min.mjs";
+  pdfjs.GlobalWorkerOptions.workerSrc =
+    "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.54/build/pdf.worker.min.mjs";
 }
 
 type PDFViewerProps = {
@@ -30,7 +24,9 @@ type PDFViewerProps = {
   className?: string;
   page?: number; // controlled current page
   onPageChange?: (p: number) => void;
-  overlay?: React.ReactNode | ((info: { width: number; height: number; page: number; scale: number }) => React.ReactNode); // overlay for current page
+  overlay?:
+    | React.ReactNode
+    | ((info: { width: number; height: number; page: number; scale: number }) => React.ReactNode); // overlay for current page
 };
 
 export default function PDFViewer({
@@ -47,7 +43,10 @@ export default function PDFViewer({
   const [scale, setScale] = useState<number>(initialScale);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pageSize, setPageSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [pageSize, setPageSize] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
   const pageWrapperRef = useRef<HTMLDivElement | null>(null);
 
   const onDocumentLoadSuccess = ({ numPages: nextNumPages }: { numPages: number }) => {
@@ -95,7 +94,10 @@ export default function PDFViewer({
     const handler = (e: KeyboardEvent) => {
       // Ignore when typing in inputs or editable elements
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+      if (
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
+      ) {
         return;
       }
 
@@ -112,7 +114,7 @@ export default function PDFViewer({
       } else if (ctrlOrMeta && (e.key === "-" || e.key === "_")) {
         e.preventDefault();
         setScale((s) => Math.max(0.25, parseFloat((s - 0.1).toFixed(2))));
-      } else if (ctrlOrMeta && (e.key === "0")) {
+      } else if (ctrlOrMeta && e.key === "0") {
         e.preventDefault();
         setScale(1);
       }
@@ -158,7 +160,9 @@ export default function PDFViewer({
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm text-gray-700" aria-live="polite">Page {pageNumber} / {numPages || "-"}</span>
+          <span className="text-sm text-gray-700" aria-live="polite">
+            Page {pageNumber} / {numPages || "-"}
+          </span>
           <button
             className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
             onClick={() => {
@@ -210,9 +214,10 @@ export default function PDFViewer({
             file={fileProp}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={(e: unknown) => {
-              const msg = e && typeof e === "object" && "message" in (e as Record<string, unknown>)
-                ? String((e as { message?: unknown }).message)
-                : "Failed to load PDF";
+              const msg =
+                e && typeof e === "object" && "message" in (e as Record<string, unknown>)
+                  ? String((e as { message?: unknown }).message)
+                  : "Failed to load PDF";
               console.error("PDF load error:", e);
               setError(msg);
             }}
@@ -241,7 +246,12 @@ export default function PDFViewer({
                 <div className="absolute inset-0 z-10">
                   <div className="relative w-full h-full">
                     {typeof overlay === "function"
-                      ? overlay({ width: pageSize.width, height: pageSize.height, page: pageNumber, scale })
+                      ? overlay({
+                          width: pageSize.width,
+                          height: pageSize.height,
+                          page: pageNumber,
+                          scale,
+                        })
                       : overlay}
                   </div>
                 </div>

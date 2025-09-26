@@ -16,7 +16,8 @@ export default function ThumbnailsRail({ file, onSelect, currentPage }: Props) {
     const v = (pdfjs as unknown as { version?: string }).version || "5.4.54";
     pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${v}/build/pdf.worker.min.mjs`;
   } catch {
-    pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.54/build/pdf.worker.min.mjs";
+    pdfjs.GlobalWorkerOptions.workerSrc =
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.54/build/pdf.worker.min.mjs";
   }
   const [numPages, setNumPages] = useState(0);
   const fileProp = useMemo(() => (typeof file === "string" ? { url: file } : file), [file]);
@@ -26,7 +27,12 @@ export default function ThumbnailsRail({ file, onSelect, currentPage }: Props) {
       <Document
         file={fileProp}
         onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-        loading={<div className="p-3 text-gray-600 flex items-center gap-2"><Spinner /><span>Loading…</span></div>}
+        loading={
+          <div className="p-3 text-gray-600 flex items-center gap-2">
+            <Spinner />
+            <span>Loading…</span>
+          </div>
+        }
       >
         <div className="p-2 space-y-2">
           {Array.from({ length: numPages }, (_, i) => i + 1).map((p) => (
@@ -35,7 +41,12 @@ export default function ThumbnailsRail({ file, onSelect, currentPage }: Props) {
               className={`block w-full border rounded hover:border-blue-500 ${p === currentPage ? "ring-2 ring-blue-500" : ""}`}
               onClick={() => onSelect(p)}
             >
-              <Page pageNumber={p} width={112} renderTextLayer={false} renderAnnotationLayer={false} />
+              <Page
+                pageNumber={p}
+                width={112}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+              />
               <div className="text-[11px] text-gray-600 py-1">Page {p}</div>
             </button>
           ))}

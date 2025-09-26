@@ -14,30 +14,28 @@ interface Signer {
 export default function CreatePage() {
   const [documentTitle, setDocumentTitle] = useState("");
   const [message, setMessage] = useState("");
-  const [signers, setSigners] = useState<Signer[]>([
-    { id: "1", name: "", email: "", order: 1 }
-  ]);
+  const [signers, setSigners] = useState<Signer[]>([{ id: "1", name: "", email: "", order: 1 }]);
 
   const addSigner = () => {
     const newSigner: Signer = {
       id: Date.now().toString(),
       name: "",
       email: "",
-      order: signers.length + 1
+      order: signers.length + 1,
     };
     setSigners([...signers, newSigner]);
   };
 
   const removeSigner = (id: string) => {
     if (signers.length > 1) {
-      setSigners(signers.filter(signer => signer.id !== id));
+      setSigners(signers.filter((signer) => signer.id !== id));
     }
   };
 
   const updateSigner = (id: string, field: keyof Signer, value: string | number) => {
-    setSigners(signers.map(signer => 
-      signer.id === id ? { ...signer, [field]: value } : signer
-    ));
+    setSigners(
+      signers.map((signer) => (signer.id === id ? { ...signer, [field]: value } : signer)),
+    );
   };
 
   return (
@@ -51,10 +49,7 @@ export default function CreatePage() {
               <span className="ml-2 text-xl font-bold text-gray-900">SignatureApp</span>
             </Link>
             <div className="flex items-center space-x-4">
-              <Link 
-                href="/sign" 
-                className="text-gray-600 hover:text-gray-900"
-              >
+              <Link href="/sign" className="text-gray-600 hover:text-gray-900">
                 Back to Sign
               </Link>
             </div>
@@ -144,7 +139,7 @@ export default function CreatePage() {
                         <input
                           type="text"
                           value={signer.name}
-                          onChange={(e) => updateSigner(signer.id, 'name', e.target.value)}
+                          onChange={(e) => updateSigner(signer.id, "name", e.target.value)}
                           placeholder="Enter full name"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -156,7 +151,7 @@ export default function CreatePage() {
                         <input
                           type="email"
                           value={signer.email}
-                          onChange={(e) => updateSigner(signer.id, 'email', e.target.value)}
+                          onChange={(e) => updateSigner(signer.id, "email", e.target.value)}
                           placeholder="Enter email address"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -199,7 +194,9 @@ export default function CreatePage() {
                 <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                   <div>
                     <h3 className="font-medium text-gray-900">Completion Certificate</h3>
-                    <p className="text-sm text-gray-600">Generate a certificate when all signatures are collected</p>
+                    <p className="text-sm text-gray-600">
+                      Generate a certificate when all signatures are collected
+                    </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />

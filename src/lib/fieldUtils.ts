@@ -4,10 +4,10 @@ export type Rect = { x: number; y: number; width: number; height: number };
 
 export function toPixels(f: Field, pageW: number, pageH: number): Rect {
   return {
-  x: f.x * pageW,
-  y: f.y * pageH,
-  width: f.w * pageW,
-  height: f.h * pageH,
+    x: f.x * pageW,
+    y: f.y * pageH,
+    width: f.w * pageW,
+    height: f.h * pageH,
   };
 }
 

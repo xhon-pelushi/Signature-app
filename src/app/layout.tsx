@@ -33,18 +33,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-  <body className={`${geistSans.variable} ${geistMono.variable} ${dancing.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${dancing.variable} antialiased`}
+      >
         <AuthProvider>
           <header className="w-full border-b bg-white/80 sticky top-0 backdrop-blur z-50">
             <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-              <Link className="font-semibold" href="/">Signature App</Link>
+              <Link className="font-semibold" href="/">
+                Signature App
+              </Link>
               <AuthStatus />
             </div>
           </header>
           <ErrorBoundary>
-            <main className="max-w-5xl mx-auto px-4 py-6">
-              {children}
-            </main>
+            <main className="max-w-5xl mx-auto px-4 py-6">{children}</main>
           </ErrorBoundary>
         </AuthProvider>
       </body>

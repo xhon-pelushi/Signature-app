@@ -35,10 +35,10 @@ export default function Home() {
             <span className="text-blue-600"> Made Simple</span>
           </h2>
           <p className="mt-6 text-lg text-gray-600 max-w-3xl mx-auto">
-            Upload, sign, and send documents securely. Get signatures from anyone, anywhere, 
-            in minutes. The modern way to handle document signing workflows.
+            Upload, sign, and send documents securely. Get signatures from anyone, anywhere, in
+            minutes. The modern way to handle document signing workflows.
           </p>
-          
+
           <div className="mt-10 flex gap-4 justify-center">
             <Link
               href="/sign"
@@ -63,8 +63,8 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Easy Upload</h3>
             <p className="text-gray-600">
-              Simply drag and drop your PDF documents or click to browse. 
-              Support for multiple file formats and large documents.
+              Simply drag and drop your PDF documents or click to browse. Support for multiple file
+              formats and large documents.
             </p>
           </div>
 
@@ -74,8 +74,8 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Digital Signatures</h3>
             <p className="text-gray-600">
-              Draw, type, or upload your signature. Place it anywhere on the document 
-              with precision and save it for future use.
+              Draw, type, or upload your signature. Place it anywhere on the document with precision
+              and save it for future use.
             </p>
           </div>
 
@@ -85,8 +85,8 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Team Workflow</h3>
             <p className="text-gray-600">
-              Send documents to multiple signers in order. Track progress and 
-              get notified when everyone has signed.
+              Send documents to multiple signers in order. Track progress and get notified when
+              everyone has signed.
             </p>
           </div>
         </div>
@@ -94,12 +94,10 @@ export default function Home() {
         {/* CTA Section */}
         <div className="mt-24 bg-white rounded-2xl p-12 text-center shadow-sm">
           <FileText className="h-16 w-16 text-blue-600 mx-auto mb-6" />
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">
-            Ready to Get Started?
-          </h3>
+          <h3 className="text-3xl font-bold text-gray-900 mb-4">Ready to Get Started?</h3>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who trust our platform for their document signing needs. 
-            Fast, secure, and legally binding signatures.
+            Join thousands of users who trust our platform for their document signing needs. Fast,
+            secure, and legally binding signatures.
           </p>
           <Link
             href="/sign"
@@ -126,24 +124,56 @@ export default function Home() {
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/features" className="hover:text-white">Features</Link></li>
-                <li><Link href="/pricing" className="hover:text-white">Pricing</Link></li>
-                <li><Link href="/security" className="hover:text-white">Security</Link></li>
+                <li>
+                  <Link href="/features" className="hover:text-white">
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pricing" className="hover:text-white">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/security" className="hover:text-white">
+                    Security
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/about" className="hover:text-white">About</Link></li>
-                <li><Link href="/contact" className="hover:text-white">Contact</Link></li>
-                <li><Link href="/support" className="hover:text-white">Support</Link></li>
+                <li>
+                  <Link href="/about" className="hover:text-white">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="hover:text-white">
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/support" className="hover:text-white">
+                    Support
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/privacy" className="hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-white">Terms of Service</Link></li>
+                <li>
+                  <Link href="/privacy" className="hover:text-white">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="hover:text-white">
+                    Terms of Service
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

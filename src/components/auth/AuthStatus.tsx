@@ -20,10 +20,7 @@ export function AuthStatus() {
     );
   }
   return (
-    <a
-      className="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
-      href="/signin"
-    >
+    <a className="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700" href="/signin">
       Sign in
     </a>
   );

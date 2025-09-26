@@ -42,8 +42,10 @@ export function SignatureCanvas({ strokeWidth = 2, strokeColor = "#000", onChang
   const getPos = (e: React.MouseEvent | React.TouchEvent) => {
     const c = canvasRef.current!;
     const rect = c.getBoundingClientRect();
-    const clientX = ("touches" in e && e.touches[0]) ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
-    const clientY = ("touches" in e && e.touches[0]) ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    const clientX =
+      "touches" in e && e.touches[0] ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY =
+      "touches" in e && e.touches[0] ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
     const x = clientX - rect.left;
     const y = clientY - rect.top;
     return { x, y };
@@ -97,7 +99,9 @@ export function SignatureCanvas({ strokeWidth = 2, strokeColor = "#000", onChang
         />
       </div>
       <div className="mt-2 text-right">
-        <button className="text-sm text-gray-600 hover:text-gray-800" onClick={clear}>Clear</button>
+        <button className="text-sm text-gray-600 hover:text-gray-800" onClick={clear}>
+          Clear
+        </button>
       </div>
     </div>
   );

@@ -23,11 +23,12 @@ export default function SignPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [signatureMode, setSignatureMode] = useState<'draw' | 'type' | 'upload'>('draw');
+  const [signatureMode, setSignatureMode] = useState<"draw" | "type" | "upload">("draw");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const { fields, addField, updateField, removeField, setAll, undo, redo, canUndo, canRedo } = useFields();
+  const { fields, addField, updateField, removeField, setAll, undo, redo, canUndo, canRedo } =
+    useFields();
   const [downloading, setDownloading] = useState(false);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const { signatureDataUrl, setFromDataUrl, clear: clearSignature } = useSignature();
@@ -64,12 +65,18 @@ export default function SignPage() {
       else if (e.key === "ArrowRight") dx = step;
       else if (e.key === "ArrowUp") dy = -step;
       else if (e.key === "ArrowDown") dy = step;
-      else if (e.key === "Escape") { setSelectedFieldId(null); return; }
-      else return;
+      else if (e.key === "Escape") {
+        setSelectedFieldId(null);
+        return;
+      } else return;
       e.preventDefault();
       const nx = Math.min(1 - f.w, Math.max(0, f.x + dx));
       const ny = Math.min(1 - f.h, Math.max(0, f.y + dy));
-      updateField(currentPage, f.id, { ...f, x: Math.round(nx * 1000) / 1000, y: Math.round(ny * 1000) / 1000 });
+      updateField(currentPage, f.id, {
+        ...f,
+        x: Math.round(nx * 1000) / 1000,
+        y: Math.round(ny * 1000) / 1000,
+      });
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -87,7 +94,7 @@ export default function SignPage() {
       return;
     }
     if (result.warnings.length) {
-      console.warn('PDF validation warnings:', result.warnings);
+      console.warn("PDF validation warnings:", result.warnings);
     }
     setUploadedFile(file);
   };
@@ -107,7 +114,7 @@ export default function SignPage() {
       return;
     }
     if (result.warnings.length) {
-      console.warn('PDF validation warnings:', result.warnings);
+      console.warn("PDF validation warnings:", result.warnings);
     }
     setUploadedFile(file);
   };
@@ -137,7 +144,11 @@ export default function SignPage() {
     try {
       const raw = localStorage.getItem(key);
       if (raw) {
-        const parsed = JSON.parse(raw) as { fields: FieldsByPage; signatureDataUrl?: string; signers?: Signer[] };
+        const parsed = JSON.parse(raw) as {
+          fields: FieldsByPage;
+          signatureDataUrl?: string;
+          signers?: Signer[];
+        };
         if (parsed?.fields) setAll(parsed.fields);
         if (parsed?.signatureDataUrl) setFromDataUrl(parsed.signatureDataUrl);
         if (parsed?.signers?.length) setSigners(parsed.signers);
@@ -198,7 +209,9 @@ export default function SignPage() {
                     return;
                   }
                   // Simulate sending by generating a flattened copy and opening a preview
-                  const blob = await exportWithFields(uploadedFile, fields, { signatureDataUrl: signatureDataUrl ?? undefined });
+                  const blob = await exportWithFields(uploadedFile, fields, {
+                    signatureDataUrl: signatureDataUrl ?? undefined,
+                  });
                   const url = URL.createObjectURL(blob);
                   window.open(url, "_blank");
                   setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -213,26 +226,22 @@ export default function SignPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Document Upload/Viewer */}
           <div className="lg:col-span-2">
             {!uploadedFile ? (
-              <div 
+              <div
                 className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-400 transition-colors cursor-pointer"
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Upload PDF Document
-                </h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Upload PDF Document</h3>
                 <p className="text-gray-600 mb-4">
                   Drag and drop your PDF file here, or click to browse
                 </p>
-                {uploadError && (
-                  <p className="text-sm text-red-600 mb-2">{uploadError}</p>
-                )}
+                {uploadError && <p className="text-sm text-red-600 mb-2">{uploadError}</p>}
                 <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
                   Choose File
                 </button>
@@ -277,7 +286,7 @@ export default function SignPage() {
                       >
                         <Download className="h-4 w-4" />
                       </button>
-                      <button 
+                      <button
                         className="text-red-600 hover:text-red-800 text-sm"
                         onClick={() => setUploadedFile(null)}
                       >
@@ -286,7 +295,7 @@ export default function SignPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* PDF Viewer with thumbnails and overlay */}
                 <div className="p-4">
                   <div className="flex gap-4">
@@ -312,33 +321,58 @@ export default function SignPage() {
                             if (showGuides && selected) {
                               const pushUniq = (arr: number[], v: number) => {
                                 const rounded = Math.round(v * 1000) / 1000;
-                                if (!arr.some((x) => Math.abs(x - rounded) < 0.001)) arr.push(rounded);
+                                if (!arr.some((x) => Math.abs(x - rounded) < 0.001))
+                                  arr.push(rounded);
                               };
-                              const selX = [selected.x, selected.x + selected.w / 2, selected.x + selected.w];
-                              const selY = [selected.y, selected.y + selected.h / 2, selected.y + selected.h];
+                              const selX = [
+                                selected.x,
+                                selected.x + selected.w / 2,
+                                selected.x + selected.w,
+                              ];
+                              const selY = [
+                                selected.y,
+                                selected.y + selected.h / 2,
+                                selected.y + selected.h,
+                              ];
                               // Compare with page bounds and center
                               [0, 0.5, 1].forEach((p) => {
-                                if (selX.some((x) => Math.abs(x - p) < eps)) pushUniq(vLines, p * width);
-                                if (selY.some((y) => Math.abs(y - p) < eps)) pushUniq(hLines, p * height);
+                                if (selX.some((x) => Math.abs(x - p) < eps))
+                                  pushUniq(vLines, p * width);
+                                if (selY.some((y) => Math.abs(y - p) < eps))
+                                  pushUniq(hLines, p * height);
                               });
                               // Compare with other fields
                               for (const ofield of pageFields) {
                                 if (ofield.id === selected.id) continue;
                                 const oX = [ofield.x, ofield.x + ofield.w / 2, ofield.x + ofield.w];
                                 const oY = [ofield.y, ofield.y + ofield.h / 2, ofield.y + ofield.h];
-                                for (const sx of selX) for (const ox of oX) if (Math.abs(sx - ox) < eps) pushUniq(vLines, ox * width);
-                                for (const sy of selY) for (const oy of oY) if (Math.abs(sy - oy) < eps) pushUniq(hLines, oy * height);
+                                for (const sx of selX)
+                                  for (const ox of oX)
+                                    if (Math.abs(sx - ox) < eps) pushUniq(vLines, ox * width);
+                                for (const sy of selY)
+                                  for (const oy of oY)
+                                    if (Math.abs(sy - oy) < eps) pushUniq(hLines, oy * height);
                               }
                             }
                             return (
                               <>
                                 {/* Alignment guides */}
-                                {showGuides && hLines.map((y) => (
-                                  <div key={`h-${y}`} className="absolute left-0 right-0 h-px bg-pink-500/70 pointer-events-none" style={{ top: y }} />
-                                ))}
-                                {showGuides && vLines.map((x) => (
-                                  <div key={`v-${x}`} className="absolute top-0 bottom-0 w-px bg-pink-500/70 pointer-events-none" style={{ left: x }} />
-                                ))}
+                                {showGuides &&
+                                  hLines.map((y) => (
+                                    <div
+                                      key={`h-${y}`}
+                                      className="absolute left-0 right-0 h-px bg-pink-500/70 pointer-events-none"
+                                      style={{ top: y }}
+                                    />
+                                  ))}
+                                {showGuides &&
+                                  vLines.map((x) => (
+                                    <div
+                                      key={`v-${x}`}
+                                      className="absolute top-0 bottom-0 w-px bg-pink-500/70 pointer-events-none"
+                                      style={{ left: x }}
+                                    />
+                                  ))}
                                 {pageFields.map((f) => (
                                   <DraggableField
                                     key={f.id}
@@ -352,7 +386,11 @@ export default function SignPage() {
                                     color={signers.find((s) => s.id === f.signerId)?.colorClass}
                                     signerName={signers.find((s) => s.id === f.signerId)?.name}
                                     showGuides={showGuides}
-                                    signaturePreviewUrl={f.type === 'signature' ? signatureDataUrl ?? undefined : undefined}
+                                    signaturePreviewUrl={
+                                      f.type === "signature"
+                                        ? (signatureDataUrl ?? undefined)
+                                        : undefined
+                                    }
                                   />
                                 ))}
                               </>
@@ -379,38 +417,38 @@ export default function SignPage() {
             {/* Signature Creation */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Signature</h3>
-              
+
               {/* Signature Mode Tabs */}
               <div className="flex rounded-lg bg-gray-100 p-1 mb-4">
                 <button
                   className={`flex-1 flex items-center justify-center py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                    signatureMode === 'draw' 
-                      ? 'bg-white text-blue-600 shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
+                    signatureMode === "draw"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
-                  onClick={() => setSignatureMode('draw')}
+                  onClick={() => setSignatureMode("draw")}
                 >
                   <PenTool className="h-4 w-4 mr-1" />
                   Draw
                 </button>
                 <button
                   className={`flex-1 flex items-center justify-center py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                    signatureMode === 'type' 
-                      ? 'bg-white text-blue-600 shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
+                    signatureMode === "type"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
-                  onClick={() => setSignatureMode('type')}
+                  onClick={() => setSignatureMode("type")}
                 >
                   <Type className="h-4 w-4 mr-1" />
                   Type
                 </button>
                 <button
                   className={`flex-1 flex items-center justify-center py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                    signatureMode === 'upload' 
-                      ? 'bg-white text-blue-600 shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
+                    signatureMode === "upload"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
-                  onClick={() => setSignatureMode('upload')}
+                  onClick={() => setSignatureMode("upload")}
                 >
                   <ImageIcon className="h-4 w-4 mr-1" />
                   Upload
@@ -419,10 +457,10 @@ export default function SignPage() {
 
               {/* Signature Canvas/Input */}
               <div className="border border-gray-300 rounded-lg bg-gray-50 p-3 mb-4">
-                {signatureMode === 'draw' && (
+                {signatureMode === "draw" && (
                   <SignatureCanvas onChange={(dataUrl) => setFromDataUrl(dataUrl)} />
                 )}
-                {signatureMode === 'type' && (
+                {signatureMode === "type" && (
                   <div className="flex items-center gap-3">
                     <input
                       type="text"
@@ -443,7 +481,7 @@ export default function SignPage() {
                     </select>
                   </div>
                 )}
-                {signatureMode === 'upload' && (
+                {signatureMode === "upload" && (
                   <div className="text-center">
                     <input
                       ref={uploadSigInputRef}
@@ -454,7 +492,7 @@ export default function SignPage() {
                         if (!f) return;
                         const reader = new FileReader();
                         reader.onload = () => {
-                          if (typeof reader.result === 'string') setFromDataUrl(reader.result);
+                          if (typeof reader.result === "string") setFromDataUrl(reader.result);
                         };
                         reader.readAsDataURL(f);
                       }}
@@ -478,25 +516,26 @@ export default function SignPage() {
                 <button
                   className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
                   onClick={() => {
-                    if (signatureMode === 'type') {
+                    if (signatureMode === "type") {
                       // Render typed signature to a canvas and save as dataURL
-                      const canvas = document.createElement('canvas');
-                      const w = 600, h = 200;
+                      const canvas = document.createElement("canvas");
+                      const w = 600,
+                        h = 200;
                       canvas.width = w;
                       canvas.height = h;
-                      const ctx = canvas.getContext('2d');
+                      const ctx = canvas.getContext("2d");
                       if (ctx) {
-                        ctx.fillStyle = '#fff';
+                        ctx.fillStyle = "#fff";
                         ctx.fillRect(0, 0, w, h);
-                        ctx.fillStyle = '#000';
+                        ctx.fillStyle = "#000";
                         const fontFamily = typedFont;
                         ctx.font = `64px ${fontFamily}`;
-                        ctx.textBaseline = 'middle';
-                        const metrics = ctx.measureText(typedName || 'Signature');
+                        ctx.textBaseline = "middle";
+                        const metrics = ctx.measureText(typedName || "Signature");
                         const x = (w - metrics.width) / 2;
                         const y = h / 2;
-                        ctx.fillText(typedName || 'Signature', Math.max(10, x), y);
-                        setFromDataUrl(canvas.toDataURL('image/png'));
+                        ctx.fillText(typedName || "Signature", Math.max(10, x), y);
+                        setFromDataUrl(canvas.toDataURL("image/png"));
                       }
                     }
                     // draw and upload modes already set dataUrl via onChange or file input
@@ -521,7 +560,12 @@ export default function SignPage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Fields</h3>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 mb-2 text-sm text-gray-700">
-                  <input type="checkbox" className="accent-blue-600" checked={showGuides} onChange={(e) => setShowGuides(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    className="accent-blue-600"
+                    checked={showGuides}
+                    onChange={(e) => setShowGuides(e.target.checked)}
+                  />
                   Show alignment guides
                 </label>
                 <button
@@ -564,9 +608,14 @@ export default function SignPage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Signers</h3>
               <div className="space-y-2">
                 {signers.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between border rounded px-3 py-2">
+                  <div
+                    key={s.id}
+                    className="flex items-center justify-between border rounded px-3 py-2"
+                  >
                     <div className="flex items-center gap-2">
-                      <span className={`inline-block w-3 h-3 rounded-full ${s.colorClass.replace('border-', 'bg-')}`}></span>
+                      <span
+                        className={`inline-block w-3 h-3 rounded-full ${s.colorClass.replace("border-", "bg-")}`}
+                      ></span>
                       <span>{s.name}</span>
                     </div>
                     <button
@@ -579,7 +628,9 @@ export default function SignPage() {
                         if (!fld) return;
                         updateField(currentPage, fld.id, { ...fld, signerId: s.id });
                       }}
-                    >Assign selected</button>
+                    >
+                      Assign selected
+                    </button>
                   </div>
                 ))}
                 <div className="mt-3">
@@ -607,10 +658,15 @@ export default function SignPage() {
                       disabled={!newSignerName.trim()}
                       onClick={() => {
                         const id = `s${Date.now()}`;
-                        setSigners((prev) => [...prev, { id, name: newSignerName.trim(), colorClass: newSignerColor }]);
+                        setSigners((prev) => [
+                          ...prev,
+                          { id, name: newSignerName.trim(), colorClass: newSignerColor },
+                        ]);
                         setNewSignerName("");
                       }}
-                    >Add</button>
+                    >
+                      Add
+                    </button>
                   </div>
                 </div>
               </div>
@@ -624,12 +680,16 @@ export default function SignPage() {
                   className="px-3 py-1.5 rounded border disabled:opacity-50"
                   onClick={undo}
                   disabled={!canUndo}
-                >Undo</button>
+                >
+                  Undo
+                </button>
                 <button
                   className="px-3 py-1.5 rounded border disabled:opacity-50"
                   onClick={redo}
                   disabled={!canRedo}
-                >Redo</button>
+                >
+                  Redo
+                </button>
               </div>
             </div>
 
@@ -642,7 +702,9 @@ export default function SignPage() {
                   disabled={!uploadedFile}
                   onClick={async () => {
                     if (!uploadedFile) return;
-                    const blob = await exportWithFields(uploadedFile, fields, { signatureDataUrl: signatureDataUrl ?? undefined });
+                    const blob = await exportWithFields(uploadedFile, fields, {
+                      signatureDataUrl: signatureDataUrl ?? undefined,
+                    });
                     const url = URL.createObjectURL(blob);
                     window.open(url, "_blank");
                     setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -650,14 +712,16 @@ export default function SignPage() {
                 >
                   Preview Document
                 </button>
-        <button
+                <button
                   className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                   disabled={!uploadedFile || downloading}
                   onClick={async () => {
                     if (!uploadedFile) return;
                     try {
                       setDownloading(true);
-                      const blob = await exportWithFields(uploadedFile, fields, { signatureDataUrl: signatureDataUrl ?? undefined });
+                      const blob = await exportWithFields(uploadedFile, fields, {
+                        signatureDataUrl: signatureDataUrl ?? undefined,
+                      });
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement("a");
                       a.href = url;

@@ -8,10 +8,10 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email", placeholder: "you@example.com" },
       },
-  authorize(creds): Awaitable<User | null> {
+      authorize(creds): Awaitable<User | null> {
         const email = (creds?.email as string | undefined)?.trim() ?? "";
         if (email && email.includes("@")) {
-      return { id: email, email, name: email.split("@")[0] } as User;
+          return { id: email, email, name: email.split("@")[0] } as User;
         }
         return null;
       },

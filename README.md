@@ -11,6 +11,7 @@ A modern digital signature application built with Next.js 15, TypeScript, and Ta
 ## 🚀 Features
 
 ### Core Functionality
+
 - **PDF Upload & Viewer**: Drag & drop PDF upload with preview
 - **Digital Signatures**: Draw, type, or upload signature images
 - **Document Editing**: Place signatures and form fields anywhere on PDFs
@@ -18,6 +19,7 @@ A modern digital signature application built with Next.js 15, TypeScript, and Ta
 - **Real-time Tracking**: Monitor signature status and progress
 
 ### User Experience
+
 - **Responsive Design**: Works seamlessly on desktop and mobile
 - **Intuitive Interface**: Clean, modern UI built with Tailwind CSS
 - **Accessibility**: WCAG compliant with keyboard navigation
@@ -37,23 +39,27 @@ A modern digital signature application built with Next.js 15, TypeScript, and Ta
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18.19.1 or higher
 - npm 9.2.0 or higher
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/signature-app.git
 cd signature-app
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -81,6 +87,7 @@ src/
 ## 🎯 Current Status
 
 ### ✅ Completed
+
 - [x] Project setup with Next.js 15 + TypeScript
 - [x] Tailwind CSS configuration
 - [x] Home page with modern landing design
@@ -90,12 +97,14 @@ src/
 - [x] Responsive design foundation
 
 ### 🚧 In Progress
+
 - [ ] PDF viewer implementation with react-pdf
 - [ ] Signature canvas with drawing functionality
 - [ ] Drag & drop signature placement
 - [ ] Form field creation and positioning
 
 ### 📋 Planned Features
+
 - [ ] User authentication
 - [ ] Document templates
 - [ ] Email notifications
@@ -124,14 +133,14 @@ const blob = await createEmptyPdf();
 
 // With options: A4, landscape, guides, watermark, and custom colors/text
 const blob2 = await createEmptyPdf("Demo", {
-	pages: 2,
-	size: "A4",
-	orientation: "landscape",
-	guides: true,
-	watermark: { text: "DRAFT" },
-	titleColor: [0.1, 0.1, 0.5],
-	bodyText: "Hello from SignatureApp",
-	bodyColor: [0.2, 0.2, 0.2],
+  pages: 2,
+  size: "A4",
+  orientation: "landscape",
+  guides: true,
+  watermark: { text: "DRAFT" },
+  titleColor: [0.1, 0.1, 0.5],
+  bodyText: "Hello from SignatureApp",
+  bodyColor: [0.2, 0.2, 0.2],
 });
 ```
 
@@ -179,6 +188,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🤝 Support
 
 For support and questions:
+
 - Create an issue on GitHub
 - Check the documentation
 - Review the FAQ section
@@ -186,6 +196,7 @@ For support and questions:
 ## 🚀 Deployment
 
 The application can be deployed on:
+
 - Vercel (recommended for Next.js)
 - Netlify
 - AWS Amplify
@@ -194,6 +205,7 @@ The application can be deployed on:
 ### Environment Variables
 
 Create a `.env.local` file with:
+
 ```env
 # Add your environment variables here
 NEXTAUTH_SECRET=your-secret-here
