@@ -25,7 +25,6 @@ export default function SignPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [signatureMode, setSignatureMode] = useState<"draw" | "type" | "upload">("draw");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const { fields, addField, updateField, removeField, setAll, undo, redo, canUndo, canRedo } =
     useFields();
@@ -125,16 +124,7 @@ export default function SignPage() {
     setUploadedFile(sampleFile);
   };
 
-  // Create an object URL for react-pdf (run only when file changes)
-  useEffect(() => {
-    if (!uploadedFile) {
-      setPdfUrl(null);
-      return;
-    }
-    const url = URL.createObjectURL(uploadedFile);
-    setPdfUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [uploadedFile]);
+  // No object URL needed; components consume File directly
 
   // Persistence: load/save fields & signature per document name
   useEffect(() => {

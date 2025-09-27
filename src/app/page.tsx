@@ -1,7 +1,13 @@
 import { FileText, PenTool, Upload, Users } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSettings } from "@/lib/settings";
 
-export default function Home() {
+export default async function Home() {
+  const s = await getSettings();
+  if (!s || !s.initialized) {
+    redirect("/setup");
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}

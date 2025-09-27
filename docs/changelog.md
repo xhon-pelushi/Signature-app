@@ -103,6 +103,14 @@
 
 - Lib: Add `validatePdfFile` utility (MIME, size, header sniff) and integrate into Sign page upload & drag-drop
 
+## 2025-09-27
+
+- Setup: Introduced first-run Admin Setup wizard at `/setup` to configure organization and SMTP
+- Data: Added Prisma ORM with SQLite default schema (Users, Settings, Document, Versions, SignatureRequest, SignerLink, EmailQueue)
+- Infra: Added Dockerfile and docker-compose for self-hosting (SQLite or Postgres)
+- Gating: Home route now redirects to `/setup` until app is initialized (server-side check)
+- Env: Updated `.env.example` with DB provider and SMTP defaults
+
 ## 2025-09-05
 
 - Lib: Enhance `createEmptyPdf` with options (pages, size, orientation, footer) and PDF metadata
