@@ -40,8 +40,6 @@ A modern digital signature application built with Next.js 15, TypeScript, and Ta
 
 ### Prerequisites
 
-- Node.js 18.19.1 or higher
-- npm 9.2.0 or higher
 
 ### Installation
 ## Self-hosting
@@ -52,8 +50,6 @@ A modern digital signature application built with Next.js 15, TypeScript, and Ta
 
 2) Use SQLite (default) or Postgres
 
-- SQLite: ensure DATABASE_URL=file:./prisma/dev.db
-- Postgres: set DATABASE_URL to your instance and adjust schema provider
 
 3) Initialize Prisma and run the app
 
@@ -64,6 +60,7 @@ A modern digital signature application built with Next.js 15, TypeScript, and Ta
 
 Open http://localhost:3000 and you’ll be redirected to /setup. Provide organization and SMTP details to enable sending emails and mark the app initialized.
 
+See also: docs/SETUP.md for the Admin Setup guide.
 
 1. Clone the repository:
 
