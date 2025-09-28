@@ -34,11 +34,8 @@ export async function validatePdfFile(
   }
   if (sniffHeader) {
     try {
-      const slice = file.slice(0, 8);
-      const buf = new Uint8Array(await slice.arrayBuffer());
-      const header = Array.from(buf.slice(0, 5))
-        .map((b) => String.fromCharCode(b))
-        .join("");
+      const text = await file.text();
+      const header = text.slice(0, 5);
       if (!header.startsWith("%PDF-")) {
         errors.push("File does not start with %PDF- magic header");
       }
