@@ -11,10 +11,18 @@ export function toPixels(f: Field, pageW: number, pageH: number): Rect {
   };
 }
 
+/**
+ * Clamp a normalized rectangle into [0,1] space with a minimum size.
+ * Ensures width/height do not overflow past the right/bottom edges.
+ */
 export function clampNormalized(rect: Rect): Rect {
+  // First clamp origin
   const x = Math.min(Math.max(rect.x, 0), 1);
   const y = Math.min(Math.max(rect.y, 0), 1);
-  const width = Math.min(Math.max(rect.width, 0.01), 1);
-  const height = Math.min(Math.max(rect.height, 0.01), 1);
+  // Then clamp size relative to remaining space
+  const maxW = Math.max(0, 1 - x);
+  const maxH = Math.max(0, 1 - y);
+  const width = Math.min(Math.max(rect.width, 0.01), maxW);
+  const height = Math.min(Math.max(rect.height, 0.01), maxH);
   return { x, y, width, height };
 }
