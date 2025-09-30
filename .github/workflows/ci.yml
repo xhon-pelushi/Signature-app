@@ -25,6 +25,14 @@ jobs:
       - name: Prisma generate
         run: npm run prisma:generate
 
+      - name: Env diagnostics
+        run: |
+          node -v
+          npm -v
+          ls -la
+          ls -la prisma || true
+          cat prisma/schema.prisma || true
+
       - name: Typecheck
         run: npm run typecheck
 

@@ -15,7 +15,7 @@ export interface PdfValidationResult {
  * This is a lightweight client-side guard; server-side validation still required in production.
  */
 export async function validatePdfFile(
-  file: File,
+  file: File | Blob,
   opts: ValidatePdfOptions = {},
 ): Promise<PdfValidationResult> {
   const errors: string[] = [];
@@ -26,15 +26,16 @@ export async function validatePdfFile(
     sniffHeader = true,
   } = opts;
 
-  if (!allowedMimeTypes.includes(file.type)) {
-    errors.push(`Unsupported MIME type: ${file.type || "unknown"}`);
+  if (!allowedMimeTypes.includes((file as File | Blob).type)) {
+    const t = (file as File | Blob).type as string | undefined;
+    errors.push(`Unsupported MIME type: ${t || "unknown"}`);
   }
   if (file.size > maxSizeBytes) {
     errors.push(`File exceeds maximum size of ${(maxSizeBytes / (1024 * 1024)).toFixed(1)} MB`);
   }
   if (sniffHeader) {
     try {
-      const text = await file.text();
+      const text = await (file as Blob).text();
       const header = text.slice(0, 5);
       if (!header.startsWith("%PDF-")) {
         errors.push("File does not start with %PDF- magic header");
