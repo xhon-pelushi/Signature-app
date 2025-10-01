@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-10-01
+
+- Docs: Add initial `CONTRIBUTING.md` with branch strategy, commit style, testing steps, and PR guidelines
+- DX: Clarified local setup flow (prisma generate, dev scripts) for new contributors
+
 ## 2025-09-06
 
 - Docs: Add detailed JSDoc to `createEmptyPdf` for improved API clarity and DX
