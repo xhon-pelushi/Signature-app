@@ -1,6 +1,10 @@
 # Changelog
 
 ## 2025-10-01
+-
+## 2025-10-02
+
+- Docs: Improve README by adding scripts reference table and clarifying self-host steps
 
 - Docs: Add initial `CONTRIBUTING.md` with branch strategy, commit style, testing steps, and PR guidelines
 - DX: Clarified local setup flow (prisma generate, dev scripts) for new contributors

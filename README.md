@@ -175,12 +175,27 @@ The application follows a consistent design system:
 
 ### Available Scripts
 
+| Script | Purpose |
+|--------|---------|
+| `npm run dev` | Start development server (Turbopack) |
+| `npm run build` | Create production build |
+| `npm run start` | Run production server |
+| `npm run typecheck` | TypeScript type checking only |
+| `npm run lint` | ESLint (includes Prettier compatibility) |
+| `npm test` | Run Jest test suites (jsdom) |
+| `npm run prisma:generate` | Generate Prisma client |
+| `npm run prisma:migrate` | Dev migration (SQLite by default) |
+
+### Self-host Quick Reference (SQLite)
+
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
+cp .env.example .env
+npm ci
+npm run prisma:generate
+npm run dev
 ```
+
+Navigate to `http://localhost:3000` and complete the `/setup` wizard.
 
 ### Code Style
 
