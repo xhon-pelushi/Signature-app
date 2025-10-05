@@ -14,6 +14,10 @@
 
 - Security: Add initial SECURITY.md with vulnerability reporting process and hardening roadmap
 
+## 2025-10-05
+
+- Governance: Add CODE_OF_CONDUCT.md adopting Contributor Covenant v2.1
+
 - Docs: Add initial `CONTRIBUTING.md` with branch strategy, commit style, testing steps, and PR guidelines
 - DX: Clarified local setup flow (prisma generate, dev scripts) for new contributors
 
