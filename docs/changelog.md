@@ -22,6 +22,10 @@
 
 - Docs: Add `architecture.md` outlining layers, data flow, and planned extensions
 
+## 2025-10-08
+
+- DX: Add GitHub Pull Request template to standardize submissions and review expectations
+
 - Docs: Add initial `CONTRIBUTING.md` with branch strategy, commit style, testing steps, and PR guidelines
 - DX: Clarified local setup flow (prisma generate, dev scripts) for new contributors
 
