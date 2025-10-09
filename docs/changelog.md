@@ -26,6 +26,10 @@
 
 - DX: Add GitHub Pull Request template to standardize submissions and review expectations
 
+## 2025-10-09
+
+- Docs/Types: Add JSDoc and clarify exported types in `validatePdfFile` for better DX
+
 - Docs: Add initial `CONTRIBUTING.md` with branch strategy, commit style, testing steps, and PR guidelines
 - DX: Clarified local setup flow (prisma generate, dev scripts) for new contributors
 

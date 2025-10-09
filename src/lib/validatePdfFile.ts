@@ -1,9 +1,11 @@
+/** Options for client-side PDF validation. */
 export interface ValidatePdfOptions {
   maxSizeBytes?: number; // default 25MB
   allowedMimeTypes?: string[]; // default ['application/pdf']
   sniffHeader?: boolean; // perform minimal magic number sniff
 }
 
+/** Result of client-side PDF validation. */
 export interface PdfValidationResult {
   ok: boolean;
   errors: string[];
