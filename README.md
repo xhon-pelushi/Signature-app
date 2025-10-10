@@ -197,6 +197,14 @@ npm run dev
 
 Navigate to `http://localhost:3000` and complete the `/setup` wizard.
 
+### Project Health Quick Check
+
+Run a single command to validate types, lint, and tests:
+
+```bash
+npm run check:health
+```
+
 ### Code Style
 
 - Use TypeScript for all components

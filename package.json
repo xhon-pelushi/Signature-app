@@ -11,6 +11,7 @@
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:ci": "jest --runInBand --ci",
+  "check:health": "npm run typecheck && npm run lint && npm test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prisma:generate": "prisma generate",

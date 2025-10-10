@@ -30,6 +30,10 @@
 
 - Docs/Types: Add JSDoc and clarify exported types in `validatePdfFile` for better DX
 
+## 2025-10-10
+
+- DX: Add `npm run check:health` script and README quick check section
+
 - Docs: Add initial `CONTRIBUTING.md` with branch strategy, commit style, testing steps, and PR guidelines
 - DX: Clarified local setup flow (prisma generate, dev scripts) for new contributors
 
