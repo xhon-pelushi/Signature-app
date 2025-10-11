@@ -5,6 +5,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Tailwind](https://img.shields.io/badge/TailwindCSS-4-38B2AC)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![CI](https://github.com/xhon-pelushi/Signature-app/actions/workflows/ci.yml/badge.svg)
 
 A modern digital signature application built with Next.js 15, TypeScript, and Tailwind CSS. Create, sign, and manage document signing workflows similar to DocuSign.
 
