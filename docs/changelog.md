@@ -38,6 +38,10 @@
 
 - Docs: Add CI status badge to README
 
+## 2025-10-12
+
+- Tests: Strengthen emailTemplates subject assertions for clarity
+
 - Docs: Add initial `CONTRIBUTING.md` with branch strategy, commit style, testing steps, and PR guidelines
 - DX: Clarified local setup flow (prisma generate, dev scripts) for new contributors
 

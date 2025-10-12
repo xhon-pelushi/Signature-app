@@ -11,6 +11,7 @@ describe("emailTemplates", () => {
       supportEmail: "support@example.com",
     });
     expect(subject).toMatch(/\[Acme/);
+  expect(subject).toMatch(/requested your signature/);
     expect(html).toMatch(/Acme &lt;Inc&gt;/);
     expect(html).toMatch(/Hi Eve &amp; Co/);
     expect(html).toMatch(/NDA &gt; Confidential/);
