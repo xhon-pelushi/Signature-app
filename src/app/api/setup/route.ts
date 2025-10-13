@@ -1,20 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { setupSchema } from "@/lib/schemas/setup";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { orgName, fromEmail, smtpHost, smtpPort, smtpUser, smtpPass }: {
-      orgName?: string;
-      fromEmail?: string;
-      smtpHost?: string;
-      smtpPort?: number | string;
-      smtpUser?: string;
-      smtpPass?: string;
-    } = body ?? {};
-    if (!orgName || !fromEmail || !smtpHost || !smtpPort) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    const json = await req.json();
+    const parsed = setupSchema.safeParse(json);
+    if (!parsed.success) {
+      const issues = parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
+      return NextResponse.json({ message: "Invalid setup payload", issues }, { status: 400 });
     }
+    const { orgName, fromEmail, smtpHost, smtpPort, smtpUser, smtpPass } = parsed.data;
     try {
       await prisma.settings.upsert({
       where: { id: 1 },
