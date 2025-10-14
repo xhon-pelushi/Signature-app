@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-10-14
+
+- Ops: Add minimal `/api/health` endpoint reporting app environment and DB connectivity
+
+## 2025-10-13
+
+- API: Validate Setup payload with Zod schema; return structured 400 errors on invalid input
+- Tests: Add unit tests for Setup schema (happy path, port coercion/range, email validation)
+
 ## 2025-10-01
 -
 ## 2025-10-02
