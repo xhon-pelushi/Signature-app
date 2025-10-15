@@ -1,8 +1,18 @@
 import { toPixels, clampNormalized } from "@/lib/fieldUtils";
+import type { Field } from "@/types/fields";
 
 describe("fieldUtils", () => {
   it("toPixels converts normalized field to pixel rect", () => {
-    const rect = toPixels({ x: 0.25, y: 0.5, w: 0.2, h: 0.1 } as any, 1000, 800);
+    const field: Field = {
+      id: "test",
+      page: 1,
+      type: "signature",
+      x: 0.25,
+      y: 0.5,
+      w: 0.2,
+      h: 0.1,
+    };
+    const rect = toPixels(field, 1000, 800);
     expect(rect).toEqual({ x: 250, y: 400, width: 200, height: 80 });
   });
 
