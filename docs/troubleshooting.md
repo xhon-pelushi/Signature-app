@@ -26,3 +26,8 @@ This page lists quick fixes for common issues when running the Signature App loc
 
 - Symptom: Errors mentioning DOM APIs during build/SSR.
 - Fix: PDF viewer and thumbnails are client-only to avoid SSR issues. If you add DOM code, guard it behind client components.
+
+## Health check shows db.ok: false
+
+- Symptom: `/api/health` responds with `{ ok: true, db: { ok: false, message: "..." } }`.
+- Fix: The health endpoint performs a lightweight `SELECT 1` via Prisma. Ensure your database is reachable and `DATABASE_URL` is set. In local dev, you can bring up the dev DB with `docker-compose up -d` (see `docker-compose.yml`). If you don't need DB for a quick smoke test, the app still reports `ok: true` while `db.ok` informs connectivity.
