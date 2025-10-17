@@ -27,3 +27,8 @@
 - Debounced local persistence
 - rAF throttled drag updates
 - Potential future virtualization for large multi-page PDFs
+
+## Operational Visibility
+- Lightweight `/api/health` endpoint exposes runtime version, commit SHA, and DB connectivity
+- Responses are marked `Cache-Control: no-store` so monitors always receive fresh data
+- Future work: stream metrics to an external monitor (e.g., healthchecks.io) once background jobs exist
