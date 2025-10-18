@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-10-18
+
+- Docs: Annotated changelog with health endpoint observability work
+- Ops: Noted no-store caching strategy for uptime monitors and future metrics pipeline
+
 ## 2025-10-14
 
 - Ops: Add minimal `/api/health` endpoint reporting app environment and DB connectivity
