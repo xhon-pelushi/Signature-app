@@ -9,6 +9,7 @@ This app includes a first-run wizard at `/setup` to configure your organization 
 ## Database
 - Default is SQLite with `DATABASE_URL=file:./prisma/dev.db`
 - To use Postgres, set `DATABASE_URL` accordingly and adjust the Prisma provider in `prisma/schema.prisma`.
+- The `/api/health` endpoint will report `db.ok: false` if `DATABASE_URL` is missing or the DB is offline, so keep the URL valid even in local dev for uptime monitors.
 
 Initialize Prisma:
 - `npm run prisma:generate`
