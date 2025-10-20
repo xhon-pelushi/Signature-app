@@ -255,4 +255,4 @@ NEXTAUTH_URL=http://localhost:3000
 
 ---
 
-**Note**: This is an early-stage project focused on generating GitHub contribution activity. The core functionality is being actively developed. Contributions and feedback are welcome!
+**Note**: This is an early-stage project focused on generating GitHub contribution activity. The core functionality is being actively developed. Recent improvements include enhanced PDF validation and comprehensive documentation. Contributions and feedback are welcome!
