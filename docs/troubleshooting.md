@@ -31,3 +31,4 @@ This page lists quick fixes for common issues when running the Signature App loc
 
 - Symptom: `/api/health` responds with `{ ok: true, db: { ok: false, message: "..." } }`.
 - Fix: The health endpoint performs a lightweight `SELECT 1` via Prisma. Ensure your database is reachable and `DATABASE_URL` is set. In local dev, you can bring up the dev DB with `docker-compose up -d` (see `docker-compose.yml`). If you don't need DB for a quick smoke test, the app still reports `ok: true` while `db.ok` informs connectivity.
+- Tip: For uptime probes that only care about the process (not DB), you can use `HEAD /api/health` which returns `204` with the same `Cache-Control: no-store` headers but skips JSON parsing.
