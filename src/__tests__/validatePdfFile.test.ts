@@ -35,7 +35,7 @@ describe("validatePdfFile", () => {
     const f = makePdfFile({ sizeBytes: 30 * 1024 * 1024 });
     const res = await validatePdfFile(f, { maxSizeBytes: 10 * 1024 * 1024 });
     expect(res.ok).toBe(false);
-    expect(res.errors.join(" ")).toMatch(/maximum size/);
+    expect(res.errors.join(" ")).toMatch(/exceeds maximum allowed size/);
   });
 
   // Header sniffing can be environment-dependent in jsdom; we exercise it indirectly elsewhere.

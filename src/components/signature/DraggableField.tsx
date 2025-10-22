@@ -140,10 +140,10 @@ export function DraggableField({
   };
 
   const style = {
-    left: field.x * pageWidth,
-    top: field.y * pageHeight,
-    width: field.w * pageWidth,
-    height: field.h * pageHeight,
+    left: field.x * (pageWidth || 0),
+    top: field.y * (pageHeight || 0),
+    width: field.w * (pageWidth || 0),
+    height: field.h * (pageHeight || 0),
     touchAction: "none" as const,
   } as const;
 
@@ -151,6 +151,11 @@ export function DraggableField({
     color || (selected ? "border-blue-600" : dragging ? "border-blue-500" : "border-blue-400");
   const nearCenterX = Math.abs(field.x + field.w / 2 - 0.5) < 0.01;
   const nearCenterY = Math.abs(field.y + field.h / 2 - 0.5) < 0.01;
+
+  // Don't render if dimensions are not available
+  if (!pageWidth || !pageHeight || pageWidth <= 0 || pageHeight <= 0) {
+    return null;
+  }
 
   return (
     <div

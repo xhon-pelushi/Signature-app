@@ -11,6 +11,8 @@ export default function SetupPage() {
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [testingSmtp, setTestingSmtp] = useState(false);
+  const [smtpTestResult, setSmtpTestResult] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,6 +34,35 @@ export default function SetupPage() {
       setErr(msg);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function testSmtp() {
+    if (!fromEmail || !smtpHost || !smtpPort) {
+      setSmtpTestResult("Please fill in the required fields first");
+      return;
+    }
+
+    setTestingSmtp(true);
+    setSmtpTestResult(null);
+    
+    try {
+      const res = await fetch("/api/test-smtp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ testEmail: fromEmail }),
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        setSmtpTestResult(`✅ ${data.message}`);
+      } else {
+        setSmtpTestResult(`❌ ${data.message}`);
+      }
+    } catch (e) {
+      setSmtpTestResult(`❌ Test failed: ${e instanceof Error ? e.message : "Unknown error"}`);
+    } finally {
+      setTestingSmtp(false);
     }
   }
 
@@ -66,6 +97,28 @@ export default function SetupPage() {
             <input className="mt-1 w-full border rounded px-3 py-2" type="password" value={smtpPass} onChange={(e) => setSmtpPass(e.target.value)} />
           </label>
         </div>
+        
+        {/* SMTP Test Section */}
+        <div className="border-t pt-4">
+          <h3 className="text-lg font-medium mb-3">Test SMTP Configuration</h3>
+          <p className="text-sm text-gray-600 mb-3">
+            Test your SMTP settings by sending a test email to verify everything is working.
+          </p>
+          <button
+            type="button"
+            onClick={testSmtp}
+            disabled={testingSmtp || !fromEmail || !smtpHost || !smtpPort}
+            className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50 mr-3"
+          >
+            {testingSmtp ? "Testing..." : "Test SMTP"}
+          </button>
+          {smtpTestResult && (
+            <div className={`text-sm mt-2 ${smtpTestResult.startsWith('✅') ? 'text-green-700' : 'text-red-600'}`}>
+              {smtpTestResult}
+            </div>
+          )}
+        </div>
+
         {err && <div className="text-sm text-red-600">{err}</div>}
         {ok && <div className="text-sm text-green-700">{ok}</div>}
         <button disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50">

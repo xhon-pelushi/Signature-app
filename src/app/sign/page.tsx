@@ -197,14 +197,35 @@ export default function SignPage() {
                     router.push("/signin");
                     return;
                   }
-                  // Simulate sending by generating a flattened copy and opening a preview
-                  const blob = await exportWithFields(uploadedFile, fields, {
-                    signatureDataUrl: signatureDataUrl ?? undefined,
-                  });
-                  const url = URL.createObjectURL(blob);
-                  window.open(url, "_blank");
-                  setTimeout(() => URL.revokeObjectURL(url), 60_000);
-                  alert(`Sent for signature to ${session.user.email} (simulation).`);
+
+                  try {
+                    // Get document data as ArrayBuffer
+                    const documentData = await uploadedFile.arrayBuffer();
+                    
+                    // Send signature request
+                    const response = await fetch("/api/signature-request", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        documentTitle: uploadedFile.name,
+                        signerEmail: session.user.email,
+                        signerName: session.user.name || session.user.email,
+                        fields,
+                        documentData: Array.from(new Uint8Array(documentData)),
+                      }),
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                      alert(`Signature request sent successfully to ${session.user.email}`);
+                    } else {
+                      alert(`Failed to send signature request: ${result.message}`);
+                    }
+                  } catch (error) {
+                    console.error("Error sending signature request:", error);
+                    alert("Failed to send signature request. Please try again.");
+                  }
                 }}
               >
                 Send for Signature
