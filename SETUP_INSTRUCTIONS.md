@@ -50,6 +50,9 @@ The Signature App is now fully functional! Here's what was fixed and how to run 
 - `npm run lint` - ESLint linting
 - `npm test` - Run test suite
 - `npm run check:health` - Run all checks (typecheck + lint + test)
+- `npm run dev` now exposes utility API routes:
+   - `GET /api/test-smtp` – Verify your SMTP credentials before sending invites
+   - `POST /api/signature-request` – Create a signature request payload for end-to-end testing
 
 ## Features Working
 
@@ -103,6 +106,7 @@ src/
 - TypeScript compilation is clean
 - ESLint shows no errors
 - The application builds successfully for production
+- API smoke test tip: after running `npm run dev`, hit `/api/test-smtp` to confirm email settings and `/api/health` for runtime diagnostics.
 
 The project is now ready for development and deployment!
 
