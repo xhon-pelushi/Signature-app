@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-10-23
+
+- Docs: Added dedicated setup instructions playbook with verified environment snapshot
+- Docs: Captured daily contribution maintenance so onboarding status is transparent
+
+## 2025-10-22
+
+- API: Introduced `/api/signature-request` endpoint for end-to-end testing
+- API: Added `/api/test-smtp` to validate outbound mail credentials from the CLI
+- UX: Tweaked setup and sign flows to surface the new API utilities
+
 ## 2025-10-18
 
 - Docs: Annotated changelog with health endpoint observability work
