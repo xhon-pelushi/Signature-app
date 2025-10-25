@@ -32,3 +32,9 @@ This page lists quick fixes for common issues when running the Signature App loc
 - Symptom: `/api/health` responds with `{ ok: true, db: { ok: false, message: "..." } }`.
 - Fix: The health endpoint performs a lightweight `SELECT 1` via Prisma. Ensure your database is reachable and `DATABASE_URL` is set. In local dev, you can bring up the dev DB with `docker-compose up -d` (see `docker-compose.yml`). If you don't need DB for a quick smoke test, the app still reports `ok: true` while `db.ok` informs connectivity.
 - Tip: For uptime probes that only care about the process (not DB), you can use `HEAD /api/health` which returns `204` with the same `Cache-Control: no-store` headers but skips JSON parsing.
+
+## SMTP smoke test fails
+
+- Symptom: `GET /api/test-smtp` returns `500` with `Missing SMTP configuration` or a transport error.
+- Fix: Confirm the `.env.local` contains `SMTP_HOST`, `SMTP_PORT`, and (if required) `SMTP_USER`/`SMTP_PASS`. The route reads from runtime env so restart `npm run dev` after editing `.env.local`.
+- Tip: The endpoint accepts an optional `email` query param (defaults to organization from-address). Try `/api/test-smtp?email=you@example.com` to verify outbound delivery reaches your inbox.
