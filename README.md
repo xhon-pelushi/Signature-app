@@ -84,6 +84,15 @@ npm run dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### 🧪 Utility API endpoints
+
+After the dev server is running you can exercise two helper routes:
+
+- `GET /api/test-smtp?email=you@example.com` — fires a lightweight SMTP test using the credentials from `.env` so you can confirm delivery before inviting signers.
+- `POST /api/signature-request` — accepts the same payload the UI sends when creating a request, letting you script end-to-end tests or seed fixtures.
+
+Both routes return JSON with diagnostic details and surface meaningful error messages when configuration is incomplete.
+
 ## 📁 Project Structure
 
 ```
