@@ -93,12 +93,12 @@ function mapError(error: unknown): SmtpTestResult {
 async function sendSmtpTest(testEmail: string | null | undefined): Promise<NextResponse<SmtpTestResult>> {
   const { session, error: sessionError } = await requireSession();
   if (sessionError) {
-    return sessionError;
+    return NextResponse.json({ success: false, message: "Unauthorized", error: "Unauthorized" }, { status: 401 });
   }
 
   const { settings, error: settingsError } = await getSettings();
   if (settingsError) {
-    return settingsError;
+    return NextResponse.json({ success: false, message: "App not configured", error: "App not configured" }, { status: 400 });
   }
 
   const targetEmail = normalizeTargetEmail(testEmail, settings.fromEmail, session?.user?.email);
@@ -139,7 +139,7 @@ export async function POST(req: Request) {
   try {
     const payload = await req.json();
     testEmail = payload?.testEmail;
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: false, message: "Invalid JSON payload" }, { status: 400 });
   }
 

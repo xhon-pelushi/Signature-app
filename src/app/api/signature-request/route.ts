@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { sendMail } from "@/lib/email";
 import { buildSignatureRequestEmail } from "@/lib/emailTemplates";
-import { exportWithFields } from "@/lib/exportWithFields";
+ 
 
 export async function POST(req: Request) {
   try {
@@ -66,11 +66,7 @@ export async function POST(req: Request) {
       },
     });
 
-    // Generate the PDF with fields
-    const documentBlob = await exportWithFields(
-      new Blob([documentData], { type: "application/pdf" }),
-      fields
-    );
+    // TODO: Persist generated PDF with fields and store secure URL
 
     // For now, we'll just send the email with a link to the sign page
     // In a real implementation, you'd store the PDF and provide a secure link

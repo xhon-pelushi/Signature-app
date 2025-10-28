@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-28
+
+- Docs: Minor changelog touch-up for daily maintenance
+
 ## 2025-10-23
 
 - Docs: Added dedicated setup instructions playbook with verified environment snapshot
