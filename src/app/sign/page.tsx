@@ -617,32 +617,43 @@ export default function SignPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Signers</h3>
               <div className="space-y-2">
-                {signers.map((s) => (
-                  <div
-                    key={s.id}
-                    className="flex items-center justify-between border rounded px-3 py-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-block w-3 h-3 rounded-full ${s.colorClass.replace("border-", "bg-")}`}
-                      ></span>
-                      <span>{s.name}</span>
-                    </div>
-                    <button
-                      className="text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
-                      disabled={!selectedFieldId}
-                      onClick={() => {
-                        if (!selectedFieldId) return;
-                        const list = fields[currentPage] || [];
-                        const fld = list.find((f) => f.id === selectedFieldId);
-                        if (!fld) return;
-                        updateField(currentPage, fld.id, { ...fld, signerId: s.id });
-                      }}
+                {signers.map((s) => {
+                  // Map border color classes to background color classes
+                  const bgColorMap: Record<string, string> = {
+                    "border-sky-500": "bg-sky-500",
+                    "border-emerald-500": "bg-emerald-500",
+                    "border-amber-500": "bg-amber-500",
+                    "border-rose-500": "bg-rose-500",
+                    "border-purple-500": "bg-purple-500",
+                  };
+                  const bgColor = bgColorMap[s.colorClass] || "bg-gray-500";
+                  return (
+                    <div
+                      key={s.id}
+                      className="flex items-center justify-between border rounded px-3 py-2"
                     >
-                      Assign selected
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-block w-3 h-3 rounded-full ${bgColor}`}
+                        ></span>
+                        <span>{s.name}</span>
+                      </div>
+                      <button
+                        className="text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                        disabled={!selectedFieldId}
+                        onClick={() => {
+                          if (!selectedFieldId) return;
+                          const list = fields[currentPage] || [];
+                          const fld = list.find((f) => f.id === selectedFieldId);
+                          if (!fld) return;
+                          updateField(currentPage, fld.id, { ...fld, signerId: s.id });
+                        }}
+                      >
+                        Assign selected
+                      </button>
+                    </div>
+                  );
+                })}
                 <div className="mt-3">
                   <div className="text-sm text-gray-700 mb-1">Add signer</div>
                   <div className="flex items-center gap-2">
