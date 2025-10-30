@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-10-30
+
+- Docs: Daily maintenance note for contribution tracking
+
 ## 2025-10-28
 
 - Docs: Minor changelog touch-up for daily maintenance
