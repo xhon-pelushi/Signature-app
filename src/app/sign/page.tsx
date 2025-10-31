@@ -19,6 +19,8 @@ import { SignatureCanvas } from "@/components/signature/SignatureCanvas";
 // Dynamically import PDFViewer to keep SSR clean
 const PDFViewer = dynamic(() => import("@/components/pdf/PDFViewer"), { ssr: false });
 
+// Main sign page component for document signing workflow
+
 export default function SignPage() {
   const router = useRouter();
   const { data: session } = useSession();
