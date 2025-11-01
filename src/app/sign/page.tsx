@@ -43,7 +43,7 @@ export default function SignPage() {
   ]);
   const [newSignerName, setNewSignerName] = useState("");
   const [newSignerColor, setNewSignerColor] = useState("border-sky-500");
-  const [showGuides, setShowGuides] = useState(true);
+  const [showGuides, setShowGuides] = useState(true); // Toggle alignment guides visibility
   const saveTimerRef = useRef<number | null>(null);
 
   // Keyboard nudging for selected field
