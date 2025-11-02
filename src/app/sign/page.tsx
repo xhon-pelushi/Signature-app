@@ -84,7 +84,7 @@ export default function SignPage() {
   }, [selectedFieldId, currentPage, fields, updateField, removeField]);
 
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const MAX_MB = 25; // generous default
+  const MAX_MB = 25; // Maximum file size in MB
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
