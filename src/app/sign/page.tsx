@@ -126,8 +126,6 @@ export default function SignPage() {
     setUploadedFile(sampleFile);
   };
 
-  // No object URL needed; components consume File directly
-
   // Persistence: load/save fields & signature per document name
   useEffect(() => {
     if (!uploadedFile) return;
