@@ -46,7 +46,7 @@ export default function SignPage() {
   const [showGuides, setShowGuides] = useState(true); // Toggle alignment guides visibility
   const saveTimerRef = useRef<number | null>(null);
 
-  // Keyboard nudging for selected field
+  // Keyboard nudging for selected field with arrow keys
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!selectedFieldId) return;
