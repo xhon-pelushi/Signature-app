@@ -9,6 +9,7 @@ on:
 jobs:
   update-contributions:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: write
     
@@ -19,29 +20,103 @@ jobs:
           # Use PAT if available for contribution graph, otherwise use default token
           token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          ref: main
 
       - name: Configure Git
         run: |
           # Use your GitHub username and email for commits to count on contribution graph
-          # Replace with your actual GitHub username and email, or use secrets
           git config user.name "${{ secrets.GIT_USER_NAME || 'GitHub Actions' }}"
           git config user.email "${{ secrets.GIT_USER_EMAIL || 'actions@github.com' }}"
+          git config pull.rebase false
+          git config push.default simple
+
+      - name: Pull latest changes
+        run: |
+          git pull origin main || echo "Pull failed, continuing..."
+
+      - name: Get current date
+        id: date
+        run: |
+          echo "date=$(date -u +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "datetime=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
+      - name: Check if already updated today
+        id: check
+        run: |
+          if [ -f contributions.md ]; then
+            if grep -q "${{ steps.date.outputs.date }}" contributions.md; then
+              echo "already_updated=true" >> $GITHUB_OUTPUT
+              echo "Already updated today, skipping commit"
+            else
+              echo "already_updated=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "already_updated=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Update contributions log
+        if: steps.check.outputs.already_updated != 'true'
         run: |
-          echo "# Daily Contributions Log" > contributions.md
-          echo "" >> contributions.md
-          echo "This file tracks daily commits for GitHub contribution graph." >> contributions.md
-          echo "" >> contributions.md
-          echo "## Last Updated" >> contributions.md
-          echo "- $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> contributions.md
-          echo "" >> contributions.md
-          echo "## Contribution History" >> contributions.md
-          echo "Daily automated commits to maintain GitHub contribution streak." >> contributions.md
+          {
+            echo "# Daily Contributions Log"
+            echo ""
+            echo "This file tracks daily commits for GitHub contribution graph."
+            echo ""
+            echo "## Last Updated"
+            echo "- ${{ steps.date.outputs.datetime }}"
+            echo ""
+            echo "## Contribution History"
+            echo "Daily automated commits to maintain GitHub contribution streak."
+            echo ""
+            echo "### Recent Updates"
+            if [ -f contributions.md ]; then
+              # Preserve last 10 entries from history if file exists
+              grep -A 20 "### Recent Updates" contributions.md | tail -n +2 | head -n 10 || echo ""
+            fi
+            echo "- ${{ steps.date.outputs.datetime }}"
+          } > contributions.md
 
-      - name: Commit and push changes
+      - name: Check for changes
+        id: changes
+        if: steps.check.outputs.already_updated != 'true'
+        run: |
+          git diff --quiet contributions.md && echo "has_changes=false" >> $GITHUB_OUTPUT || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit changes
+        if: steps.check.outputs.already_updated != 'true' && steps.changes.outputs.has_changes == 'true'
         run: |
           git add contributions.md
-          git commit -m "📅 Daily contribution update - $(date -u +'%Y-%m-%d')" || exit 0
-          git push origin main || exit 0
+          git commit -m "📅 Daily contribution update - ${{ steps.date.outputs.date }}"
+          echo "Commit successful"
+
+      - name: Push changes
+        if: steps.check.outputs.already_updated != 'true' && steps.changes.outputs.has_changes == 'true'
+        run: |
+          # Retry push up to 3 times with exponential backoff
+          for i in 1 2 3; do
+            if git push origin main; then
+              echo "Push successful on attempt $i"
+              exit 0
+            else
+              if [ $i -lt 3 ]; then
+                wait_time=$((2 ** ($i - 1)))
+                echo "Push failed, retrying in $wait_time seconds..."
+                sleep $wait_time
+                git pull origin main --rebase || git pull origin main || true
+              else
+                echo "Push failed after 3 attempts"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Skip message
+        if: steps.check.outputs.already_updated == 'true'
+        run: |
+          echo "✓ Already updated today, no commit needed"
+
+      - name: Success message
+        if: steps.check.outputs.already_updated != 'true' && steps.changes.outputs.has_changes == 'true'
+        run: |
+          echo "✓ Successfully created daily contribution commit for ${{ steps.date.outputs.date }}"
 
