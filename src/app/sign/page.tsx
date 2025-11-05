@@ -44,7 +44,7 @@ export default function SignPage() {
   const [newSignerName, setNewSignerName] = useState("");
   const [newSignerColor, setNewSignerColor] = useState("border-sky-500");
   const [showGuides, setShowGuides] = useState(true); // Toggle alignment guides visibility
-  const saveTimerRef = useRef<number | null>(null);
+  const saveTimerRef = useRef<number | null>(null); // Debounce timer for localStorage saves
 
   // Keyboard nudging for selected field with arrow keys
   useEffect(() => {
