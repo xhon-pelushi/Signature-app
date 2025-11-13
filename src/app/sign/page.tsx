@@ -45,6 +45,47 @@ export default function SignPage() {
   const [newSignerColor, setNewSignerColor] = useState("border-sky-500");
   const [showGuides, setShowGuides] = useState(true); // Toggle alignment guides visibility
   const saveTimerRef = useRef<number | null>(null); // Debounce timer for localStorage saves
+  const [workflowData, setWorkflowData] = useState<{
+    documentTitle: string;
+    message: string;
+    signers: Array<{ id: string; name: string; email: string; order: number }>;
+    signingOrder: boolean;
+    emailReminders: boolean;
+    completionCertificate: boolean;
+  } | null>(null);
+
+  // Load workflow data from create page
+  useEffect(() => {
+    const data = localStorage.getItem("documentWorkflow");
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        setWorkflowData(parsed);
+        // Convert workflow signers to local signer format
+        if (parsed.signers && parsed.signers.length > 0) {
+          const colors = [
+            "border-emerald-500",
+            "border-amber-500",
+            "border-sky-500",
+            "border-rose-500",
+            "border-purple-500",
+          ];
+          const convertedSigners = parsed.signers.map(
+            (s: { id: string; name: string; email: string }, idx: number) => ({
+              id: s.id,
+              name: `${s.name} (${s.email})`,
+              colorClass: colors[idx % colors.length],
+            }),
+          );
+          setSigners(convertedSigners);
+        }
+        // Clear the workflow data after loading
+        localStorage.removeItem("documentWorkflow");
+      } catch (err) {
+        console.error("Failed to parse workflow data:", err);
+      }
+    }
+  }, []);
 
   // Keyboard nudging for selected field with arrow keys
   useEffect(() => {
@@ -202,25 +243,61 @@ export default function SignPage() {
                     // Get document data as ArrayBuffer
                     const documentData = await uploadedFile.arrayBuffer();
                     
-                    // Send signature request
-                    const response = await fetch("/api/signature-request", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        documentTitle: uploadedFile.name,
-                        signerEmail: session.user.email,
-                        signerName: session.user.name || session.user.email,
-                        fields,
-                        documentData: Array.from(new Uint8Array(documentData)),
-                      }),
-                    });
+                    // If we have workflow data, send to all signers
+                    if (workflowData && workflowData.signers.length > 0) {
+                      let successCount = 0;
+                      for (const signer of workflowData.signers) {
+                        try {
+                          const response = await fetch("/api/signature-request", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              documentTitle: workflowData.documentTitle,
+                              signerEmail: signer.email,
+                              signerName: signer.name,
+                              signerOrder: signer.order,
+                              fields,
+                              documentData: Array.from(new Uint8Array(documentData)),
+                            }),
+                          });
 
-                    const result = await response.json();
-                    
-                    if (response.ok) {
-                      alert(`Signature request sent successfully to ${session.user.email}`);
+                          if (response.ok) {
+                            successCount++;
+                          }
+                        } catch (err) {
+                          console.error(`Failed to send to ${signer.email}:`, err);
+                        }
+                      }
+                      
+                      if (successCount === workflowData.signers.length) {
+                        alert(`Signature requests sent successfully to all ${successCount} signer(s)!`);
+                        setWorkflowData(null); // Clear workflow data
+                      } else {
+                        alert(
+                          `Sent to ${successCount} out of ${workflowData.signers.length} signer(s). Some requests failed.`
+                        );
+                      }
                     } else {
-                      alert(`Failed to send signature request: ${result.message}`);
+                      // Fallback: send to self
+                      const response = await fetch("/api/signature-request", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          documentTitle: uploadedFile.name,
+                          signerEmail: session.user.email,
+                          signerName: session.user.name || session.user.email,
+                          fields,
+                          documentData: Array.from(new Uint8Array(documentData)),
+                        }),
+                      });
+
+                      const result = await response.json();
+                      
+                      if (response.ok) {
+                        alert(`Signature request sent successfully to ${session.user.email}`);
+                      } else {
+                        alert(`Failed to send signature request: ${result.message}`);
+                      }
                     }
                   } catch (error) {
                     console.error("Error sending signature request:", error);
@@ -234,6 +311,31 @@ export default function SignPage() {
           </div>
         </div>
       </header>
+
+      {/* Workflow Info Banner */}
+      {workflowData && (
+        <div className="bg-blue-50 border-b border-blue-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-900">
+                  <strong>Document:</strong> {workflowData.documentTitle}
+                </p>
+                <p className="text-xs text-blue-700">
+                  {workflowData.signers.length} signer(s) •{" "}
+                  {workflowData.signingOrder ? "Ordered signing" : "Parallel signing"}
+                </p>
+              </div>
+              <button
+                onClick={() => setWorkflowData(null)}
+                className="text-sm text-blue-700 hover:text-blue-900"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

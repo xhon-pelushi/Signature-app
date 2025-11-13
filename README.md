@@ -47,7 +47,7 @@ A modern digital signature application built with Next.js 15, TypeScript, and Ta
 
 1) Copy env template and adjust secrets
 
-  cp .env.example .env
+  cp env.example .env.local
 
 2) Use SQLite (default) or Postgres
 
@@ -199,7 +199,7 @@ The application follows a consistent design system:
 ### Self-host Quick Reference (SQLite)
 
 ```bash
-cp .env.example .env
+cp env.example .env.local
 npm ci
 npm run prisma:generate
 npm run dev
@@ -254,13 +254,18 @@ The application can be deployed on:
 
 ### Environment Variables
 
-Create a `.env.local` file with:
+Copy `env.example` to `.env.local` and configure:
 
-```env
-# Add your environment variables here
-NEXTAUTH_SECRET=your-secret-here
-NEXTAUTH_URL=http://localhost:3000
+```bash
+cp env.example .env.local
 ```
+
+See `env.example` for all available configuration options including:
+- Database URL (SQLite/PostgreSQL/MySQL)
+- NextAuth secrets and URLs
+- SMTP/email configuration
+- File storage settings (local/S3/R2)
+- Optional third-party integrations
 
 ---
 

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { PenTool, FileText, Users, Calendar, Plus, Trash2 } from "lucide-react";
+import { PenTool, FileText, Users, Calendar, Plus, Trash2, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Signer {
   id: string;
@@ -12,9 +13,13 @@ interface Signer {
 }
 
 export default function CreatePage() {
+  const router = useRouter();
   const [documentTitle, setDocumentTitle] = useState("");
   const [message, setMessage] = useState("");
   const [signers, setSigners] = useState<Signer[]>([{ id: "1", name: "", email: "", order: 1 }]);
+  const [signingOrder, setSigningOrder] = useState(false);
+  const [emailReminders, setEmailReminders] = useState(true);
+  const [completionCertificate, setCompletionCertificate] = useState(true);
 
   const addSigner = () => {
     const newSigner: Signer = {
@@ -36,6 +41,48 @@ export default function CreatePage() {
     setSigners(
       signers.map((signer) => (signer.id === id ? { ...signer, [field]: value } : signer)),
     );
+  };
+
+  const handleContinue = () => {
+    // Validate inputs
+    if (!documentTitle.trim()) {
+      alert("Please enter a document title");
+      return;
+    }
+
+    const validSigners = signers.filter((s) => s.email.trim() && s.name.trim());
+    if (validSigners.length === 0) {
+      alert("Please add at least one signer with name and email");
+      return;
+    }
+
+    // Store data in localStorage to pass to sign page
+    const workflowData = {
+      documentTitle,
+      message,
+      signers: validSigners,
+      signingOrder,
+      emailReminders,
+      completionCertificate,
+    };
+
+    localStorage.setItem("documentWorkflow", JSON.stringify(workflowData));
+    router.push("/sign");
+  };
+
+  const handleSaveDraft = () => {
+    const draftData = {
+      documentTitle,
+      message,
+      signers,
+      signingOrder,
+      emailReminders,
+      completionCertificate,
+      savedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem(`draft_${Date.now()}`, JSON.stringify(draftData));
+    alert("Draft saved successfully!");
   };
 
   return (
@@ -175,7 +222,12 @@ export default function CreatePage() {
                     <p className="text-sm text-gray-600">Require signers to sign in order</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={signingOrder}
+                      onChange={(e) => setSigningOrder(e.target.checked)}
+                    />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
@@ -186,7 +238,12 @@ export default function CreatePage() {
                     <p className="text-sm text-gray-600">Send automatic reminders to signers</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={emailReminders}
+                      onChange={(e) => setEmailReminders(e.target.checked)}
+                    />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
@@ -199,7 +256,12 @@ export default function CreatePage() {
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={completionCertificate}
+                      onChange={(e) => setCompletionCertificate(e.target.checked)}
+                    />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
@@ -208,13 +270,17 @@ export default function CreatePage() {
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
-              <Link
-                href="/sign"
-                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 text-center font-semibold"
+              <button
+                onClick={handleContinue}
+                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 font-semibold flex items-center justify-center"
               >
                 Continue to Document Setup
-              </Link>
-              <button className="flex-1 border border-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-50 font-semibold">
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </button>
+              <button
+                onClick={handleSaveDraft}
+                className="flex-1 border border-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-50 font-semibold"
+              >
                 Save as Draft
               </button>
             </div>
