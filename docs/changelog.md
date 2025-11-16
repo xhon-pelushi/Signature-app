@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-11-16
+
+- Docs: Daily observability note to keep maintenance log current
+
 ## 2025-11-06
 
 - Docs: Logged routine daily maintenance to keep contribution streak active
